@@ -7,9 +7,6 @@ date: "2022-07-13"
 categories: [LEC02]
 ---
 
-# Lecture2 정리
-
-
 2강에선 Graph를 이용한 Traditional ML 방법론들에 대해 설명한다.
 
 

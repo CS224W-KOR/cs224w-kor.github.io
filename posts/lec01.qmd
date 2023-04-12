@@ -7,9 +7,7 @@ date: "2022-07-06"
 categories: [LEC01]
 ---
 
-# Lecutre 1 정리
-
-## 1.1 - Why Graphs
+# 1.1 - Why Graphs
 
 **그래프란?** 
 
@@ -90,7 +88,7 @@ e.g) 분자 구조, 3D 이미지 모형(voxel), 먹이사슬, 소셜 네트워�
     - Deep Generative Models for graphs
     - Applications
 
-## 1.2 - Applications of Graph ML
+# 1.2 - Applications of Graph ML
 
  그래프 ML은 다양한 태스크 커버가 가능하다
 
@@ -175,7 +173,7 @@ example2) physics simulation (graph evolution)
 
 ![](https://imgur.com/gallery/c9s2K6o)
 
-## 1.3 - Choice of Graph
+# 1.3 - Choice of Graph
 
 **그래프 구성요소**
 
