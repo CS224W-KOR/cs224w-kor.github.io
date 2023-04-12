@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.313">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jung Yeon Lee">
+<meta name="dcterms.date" content="2022-07-20">
+<meta name="description" content="Graph as Matrix">
+
+<title>CS224W-KOR Blog - Lecture 4</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">CS224W-KOR Blog</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">Study Group</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/CS224W-KOR"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Lecture 4</h1>
+                  <div>
+        <div class="description">
+          Graph as Matrix
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">LEC04</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Jung Yeon Lee </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 20, 2022</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#pagerank" id="toc-pagerank" class="nav-link active" data-scroll-target="#pagerank">4.1 - PageRank</a>
+  <ul class="collapse">
+  <li><a href="#the-web-as-a-directed-graph" id="toc-the-web-as-a-directed-graph" class="nav-link" data-scroll-target="#the-web-as-a-directed-graph">The Web as a Directed Graph</a></li>
+  <li><a href="#ranking-nodes-on-the-graph" id="toc-ranking-nodes-on-the-graph" class="nav-link" data-scroll-target="#ranking-nodes-on-the-graph">Ranking Nodes on the Graph</a></li>
+  <li><a href="#link-analysis-algorithms" id="toc-link-analysis-algorithms" class="nav-link" data-scroll-target="#link-analysis-algorithms">Link Analysis Algorithms</a></li>
+  <li><a href="#links-as-votes" id="toc-links-as-votes" class="nav-link" data-scroll-target="#links-as-votes">Links as Votes</a></li>
+  <li><a href="#pagerank-1" id="toc-pagerank-1" class="nav-link" data-scroll-target="#pagerank-1">PageRank</a></li>
+  <li><a href="#matrix-formulation" id="toc-matrix-formulation" class="nav-link" data-scroll-target="#matrix-formulation">Matrix Formulation</a></li>
+  <li><a href="#flow-equations" id="toc-flow-equations" class="nav-link" data-scroll-target="#flow-equations">Flow Equations</a></li>
+  <li><a href="#connection-to-random-walk" id="toc-connection-to-random-walk" class="nav-link" data-scroll-target="#connection-to-random-walk">Connection to Random Walk</a></li>
+  <li><a href="#the-stationary-distribution" id="toc-the-stationary-distribution" class="nav-link" data-scroll-target="#the-stationary-distribution">The Stationary Distribution</a></li>
+  <li><a href="#eigenvector-formulation" id="toc-eigenvector-formulation" class="nav-link" data-scroll-target="#eigenvector-formulation">Eigenvector Formulation</a></li>
+  <li><a href="#pagerank-정리" id="toc-pagerank-정리" class="nav-link" data-scroll-target="#pagerank-정리">PageRank 정리</a></li>
+  </ul></li>
+  <li><a href="#pagerank-how-to-solve" id="toc-pagerank-how-to-solve" class="nav-link" data-scroll-target="#pagerank-how-to-solve">4.2 - PageRank, How to Solve?</a>
+  <ul class="collapse">
+  <li><a href="#power-iteration-method" id="toc-power-iteration-method" class="nav-link" data-scroll-target="#power-iteration-method">Power Iteration Method</a></li>
+  <li><a href="#three-questions" id="toc-three-questions" class="nav-link" data-scroll-target="#three-questions">Three Questions</a></li>
+  <li><a href="#problems" id="toc-problems" class="nav-link" data-scroll-target="#problems">Problems</a></li>
+  <li><a href="#solutions" id="toc-solutions" class="nav-link" data-scroll-target="#solutions">Solutions</a></li>
+  <li><a href="#the-google-matrix" id="toc-the-google-matrix" class="nav-link" data-scroll-target="#the-google-matrix">The Google Matrix</a></li>
+  <li><a href="#random-teleports-beta0.8" id="toc-random-teleports-beta0.8" class="nav-link" data-scroll-target="#random-teleports-beta0.8">Random Teleports (<span class="math inline">\(\beta=0.8\)</span>)</a></li>
+  <li><a href="#solving-pagerank-정리" id="toc-solving-pagerank-정리" class="nav-link" data-scroll-target="#solving-pagerank-정리">Solving PageRank 정리</a></li>
+  </ul></li>
+  <li><a href="#random-walk-with-restarts" id="toc-random-walk-with-restarts" class="nav-link" data-scroll-target="#random-walk-with-restarts">4.3 - Random Walk with Restarts</a>
+  <ul class="collapse">
+  <li><a href="#recommendation" id="toc-recommendation" class="nav-link" data-scroll-target="#recommendation">Recommendation</a></li>
+  <li><a href="#node-proximity-measurements" id="toc-node-proximity-measurements" class="nav-link" data-scroll-target="#node-proximity-measurements">Node proximity Measurements</a></li>
+  <li><a href="#proximity-on-graphs" id="toc-proximity-on-graphs" class="nav-link" data-scroll-target="#proximity-on-graphs">Proximity on Graphs</a></li>
+  <li><a href="#random-walks" id="toc-random-walks" class="nav-link" data-scroll-target="#random-walks">Random Walks</a></li>
+  <li><a href="#pagerank-varients-정리" id="toc-pagerank-varients-정리" class="nav-link" data-scroll-target="#pagerank-varients-정리">PageRank Varients 정리</a></li>
+  </ul></li>
+  <li><a href="#matrix-factorization-and-node-embeddings" id="toc-matrix-factorization-and-node-embeddings" class="nav-link" data-scroll-target="#matrix-factorization-and-node-embeddings">4.4 - Matrix Factorization and Node Embeddings</a>
+  <ul class="collapse">
+  <li><a href="#recall-node-embeddings-embedding-matrix" id="toc-recall-node-embeddings-embedding-matrix" class="nav-link" data-scroll-target="#recall-node-embeddings-embedding-matrix">Recall: Node Embeddings &amp; Embedding matrix</a></li>
+  <li><a href="#matrix-factorization" id="toc-matrix-factorization" class="nav-link" data-scroll-target="#matrix-factorization">Matrix Factorization</a></li>
+  <li><a href="#randomwalk-based-similarity" id="toc-randomwalk-based-similarity" class="nav-link" data-scroll-target="#randomwalk-based-similarity">RandomWalk-based Similarity</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
+  <li><a href="#algorithms-정리" id="toc-algorithms-정리" class="nav-link" data-scroll-target="#algorithms-정리">Algorithms 정리</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+<section id="pagerank" class="level1 page-columns page-full">
+<h1>4.1 - PageRank</h1>
+<p>4강에서는 Graph를 <strong>매트릭스(선형대수) 관점</strong>으로 바라보는 것에 대해 이야기 합니다.</p>
+<p><img src="https://i.imgur.com/aU2bZOQ.png?1" class="img-fluid"></p>
+<p>다음 3가지 키워드, <strong>Random walk(Node Importance), Matrix Factorization, Node embedding</strong>를 중심으로 공부합니다. 강의는 총 4파트로 나누어져 진행됩니다.</p>
+<section id="the-web-as-a-directed-graph" class="level2">
+<h2 class="anchored" data-anchor-id="the-web-as-a-directed-graph">The Web as a Directed Graph</h2>
+<p><img src="https://i.imgur.com/OSK8R0d.jpg?1" class="img-fluid"></p>
+<p>웹을 거시적인 관점으로 보게되면, <strong>하나의 웹 페이지 → Node</strong>로 <strong>하이퍼링크 → Edge</strong>로 생각하여 하나의 거대한 <strong>Graph</strong>로 볼 수 있습니다.</p>
+<blockquote class="blockquote">
+<p><em>Side issue</em> - 다이나믹하게 새로 페이지들이 생길 수 있습니다. - 다크웹과 같은 접근할 수 없는 페이지들도 있을 수 있습니다.</p>
+</blockquote>
+<p>잠시 Side issue는 내려놓고, 새로 페이지들이 생기지도 않고 기존의 페이지들이 사라지지도 않는 <strong>Static pages</strong> 상황을 가정해봅시다. 아래의 그림에서처럼 페이지들은 하이퍼링크들로 서로 연결되어 있고, 유저는 페이지들에 달려있는 <strong>하이퍼 링크들</strong>로 이루어진 연결망을 기반으로 항해하듯이 <strong>Navigational</strong> 하게 page to page 이동을 하게 됩니다. (오늘날에는 post, comment, like 등의 기반의 transactional한 웹에서의 상호작용이 일어나지만 이는 우선 논외로 하겠습니다.)</p>
+<p><img src="https://i.imgur.com/wRTsHJI.png?1" class="img-fluid"> <img src="https://i.imgur.com/DAynWgh.png?1" class="img-fluid"></p>
+<p>위의 그림처럼 웹 그래프는 방향성이 있는 <strong>유향 그래프(Directed graph)</strong>임을 알 수 있습니다. 위키피디아와 같은 웹 사전 페이지들 간의 관계성이나 논문의 인용 관계 그래프 등에서 예시를 쉽게 찾아볼 수 있습니다.</p>
+<p><img src="https://i.imgur.com/idCvZ6r.png?1" class="img-fluid"></p>
+</section>
+<section id="ranking-nodes-on-the-graph" class="level2">
+<h2 class="anchored" data-anchor-id="ranking-nodes-on-the-graph">Ranking Nodes on the Graph</h2>
+<p>웹을 하나의 거대한 유향 그래프로 생각할 때 한가지 <strong>중요한 insight</strong>가 있습니다.</p>
+<blockquote class="blockquote">
+<p>💡 <strong>모든</strong> 웹 페이지들이 <strong>똑같이 중요하지는 않다</strong></p>
+</blockquote>
+<p>바로 각 페이지의 중요성이 똑같지 않다는 이야기는 그래프에서 <strong>각 노드의 중요성(importance)가 다르다</strong>는 말로 바꿔 생각할 수 있습니다. 아래 사진을 보면 직관적으로 파란색 노드가 빨간색 노드보다 더 중요할 것 같다라고 생각할 수 있습니다. <em>왜 그렇게 보일까요?</em> 아직 노드의 중요성에 대해 정의하지 않았지만 그래프에서 각 노드를 중심으로 뻗어있는 edge(link)의 수가 한눈에 비교되기 때문에 직관적으로 파악할 수 있는 것입니다. 이처럼 웹 그래프의 <strong>link structure</strong>를 가지고 우리는 각 페이지들(node)의 <strong>ranking</strong>을 매길 수 있습니다.</p>
+<p><img src="https://i.imgur.com/FvyCCna.png?1" class="img-fluid"></p>
+</section>
+<section id="link-analysis-algorithms" class="level2">
+<h2 class="anchored" data-anchor-id="link-analysis-algorithms">Link Analysis Algorithms</h2>
+<p><strong>각 페이지들의 중요성(importance)</strong>를 파악하기 위해 <strong>Link Analysis</strong>가 필요합니다.</p>
+<p>본 수업에서 다룰 Link Analysis 알고리즘들은 아래 총 3개에 대해서 다룰 예정입니다.</p>
+<ul>
+<li>PageRank</li>
+<li>Personalized PageRank (PPR)</li>
+<li>Random Walk with Restarts</li>
+</ul>
+</section>
+<section id="links-as-votes" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="links-as-votes">Links as Votes</h2>
+<p><strong>링크가 투표용지</strong>라고 생각해봅시다. 여기서 유향 그래프인 웹 그래프에서 링크는 2가지 종류가 있다는 것을 다시한번 생각해봐야 합니다.</p>
+<ul>
+<li><code>in-comming links(in-links)</code>: 기준 페이지로 들어오는 방향의 링크</li>
+<li><code>out-going links(out-links)</code>: 기준 페이지에서 나가는 방향의 링크</li>
+</ul>
+<p>이렇게 방향까지 고려하여 링크를 투표라고 생각할 때, 엄밀히 말하자면 in-link를 투표라고 생각해야 할 것 입니다. 한 가지 더 생각해볼 문제는 <strong><em>모든 in-link들을 동등하게 생각할 수 있는가?</em></strong>라는 문제입니다. <strong>어떤 링크들</strong>은 다른 링크들에 비해 <strong>좀 더 중요한 페이지로부터(from) 기준페이지로(to)</strong> 온 링크일 수도 있기 때문에 count에 차등을 둬야 하지 않을까라고 생각할 수도 있습니다. 이런 고민들은 결국 페이지들이 서로 연결되어 있어서 recursive한 문제로 볼 수 있습니다.</p>
+<aside>
+<p>➕ recursive한 문제란, 물리고 물리는 문제로 생각할 수 있습니다. A→B 링크에서 A가 중요한 페이지라는 사실을 기반으로 B가 중요해지고, 이어지는 B→C 링크에서 이 영향을 이어받아 C까지 중요한 페이지라고 판단하게 되기 때문입니다.</p>
+</aside>
+</section>
+<section id="pagerank-1" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="pagerank-1">PageRank</h2>
+<p><strong>The “Flow” Model</strong></p>
+<p>위에서 설명한 recursive한 특성을 기반으로 중요성이 흘러가는(flow) 모델을 생각해볼 수 있습니다. 중요성을 <span class="math inline">\(r\)</span>이라는 변수로 두고 기준 노드 <strong>j</strong>의 importance가 어떻게 flow되는지 살펴보겠습니다.</p>
+<ol type="1">
+<li><strong>j</strong>로 in-link되어있는 <strong>i, k</strong> 의 importance <strong><span class="math inline">\(r_i\)</span>, <span class="math inline">\(r_k\)</span></strong>를 각 노드의 out-link의 수만큼 나누어서 <strong>j</strong>로 전달됩니다. i 노드의 out-link는 총 3개 이므로 <strong><span class="math inline">\(\frac{r_i}{3}\)</span></strong>, k노드의 out-link는 총 4개 이므로 <strong><span class="math inline">\(\frac{r_k}{4}\)</span></strong>로 계산되어 두 값의 합이 <strong><span class="math inline">\(r_j\)</span></strong>가 됩니다.</li>
+<li><strong><span class="math inline">\(r_j\)</span></strong>는 <strong>j</strong>노드의 out-link를 통해 flow하게 되는데 out-link의 수, 즉 3으로 나누어져 <strong><span class="math inline">\(\frac{r_j}{3}\)</span></strong> 값이 각각의 <strong>다음 노드들</strong>로 <strong><span class="math inline">\(r_j\)</span></strong>값이 전달되게 됩니다.</li>
+</ol>
+<p><img src="https://i.imgur.com/mKnAS4F.png?1" class="img-fluid"></p>
+<p>이처럼 importance가 높은 페이지로부터 in-link된 페이지는 영향을 받아 importance가 높아짐을 알 수 있습니다. <strong>노드 <span class="math inline">\(j\)</span>의 rank</strong>, <span class="math inline">\(r_j\)</span>를 정의하면 다음과 같이 수식으로 나타낼 수 있습니다. (이때 <span class="math inline">\(d_i\)</span>는 노드 i의 out-degree를 말합니다.)</p>
+<p><span class="math display">\[
+r_{j}=\sum_{i \rightarrow j} \frac{r_{i}}{d_{i}}
+\]</span></p>
+<p>다음과 같은 예시에서 각 <code>기준 노드</code>를 가지고 <code>in-link</code>들을 고려하여 “Flow equation”을 계산해보면 다음과 같다.</p>
+<p><img src="https://i.imgur.com/PMaaDM4.png?1" class="img-fluid"></p>
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>노드 y</th>
+<th>노드 a</th>
+<th>노드 m</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>y에서 오는 링크 + a에서 오는 링크</td>
+<td>y에서 오는 링크 + m에서 오는 링크</td>
+<td>a에서 오는 링크</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(r_y = \frac{r_y}{2} + \frac{r_a}{2}\)</span></td>
+<td><span class="math inline">\(r_a = \frac{r_y}{2} + r_m\)</span></td>
+<td><span class="math inline">\(r_m = \frac{r_a}{2}\)</span></td>
+</tr>
+</tbody>
+</table>
+<aside>
+<p>➕ 3 Unknowns, 3 Equations 이기 때문에 4번째 constraint로 <span class="math inline">\(r_y + r_a + r_m =1\)</span>로 scale관련 constraint를 추가하여 Gaussian elimination을 사용하여 선형방정식으로 풀려고 하는 생각은 좋지 않다. 왜냐하면 importance는 이런식으로 scalable하지 않기 때문이다. (It’s not scalable) 좀 더 정교한 설계가 필요하다.</p>
+</aside>
+</section>
+<section id="matrix-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="matrix-formulation">Matrix Formulation</h2>
+<p><strong>Stochastic Adjacency Matrix</strong> <span class="math inline">\(\mathbf{M}\)</span></p>
+<ul>
+<li><p><span class="math inline">\(\mathbf{M}\)</span>은 <span class="math inline">\((node의 수)\times (node의 수)\)</span>차원의 매트릭스 입니다.</p></li>
+<li><p><span class="math inline">\(i\)</span>→<span class="math inline">\(j\)</span> 링크에서 매트릭스 요소 <span class="math inline">\(M_{ji}\)</span>는 <span class="math inline">\(\frac{1}{d_i}\)</span>가 됩니다. (<span class="math inline">\(d_i\)</span>를 노드 <span class="math inline">\(i\)</span>의 out-degree라고 정의합니다.)</p>
+<p><span class="math display">\[
+  M_{ji} = \frac{1}{d_i}
+  \]</span></p>
+<p>오른쪽 예시에서처럼 노드 <span class="math inline">\(i\)</span>를 기준으로 총 3개의 out-link들이 있다면 각각의 값은 <span class="math inline">\(1/3\)</span>이 됩니다.</p></li>
+<li><p><strong>column 기준 stochastic</strong> : 열 방향의 모든 값들을 더하면 1이 되는 확률값이 됩니다.</p></li>
+</ul>
+<p><img src="https://i.imgur.com/MwU2yRF.png?1" class="img-fluid"></p>
+<p><strong>Rank Vector</strong> <span class="math inline">\(r\)</span></p>
+<ul>
+<li><span class="math inline">\(\mathbf{r}\)</span>은 각 페이지의 entry 값을 가지는 <span class="math inline">\((node의 수)\times 1\)</span> 차원의 벡터입니다.</li>
+<li>각 페이지의 importance score를 <span class="math inline">\(r_i\)</span>로 정의합니다.</li>
+<li>모든 노드의 importance score의 합은 1입니다. 따라서 이 또한 확률값으로 생각할 수 있습니다.</li>
+</ul>
+<p><span class="math display">\[
+\sum_ir_i = 1
+\]</span></p>
+</section>
+<section id="flow-equations" class="level2">
+<h2 class="anchored" data-anchor-id="flow-equations">Flow Equations</h2>
+<p>이전에 정의했던 노드의 rank 수식을 새롭게 정의한 매트릭스 <span class="math inline">\(M\)</span>과 벡터 <span class="math inline">\(r\)</span>로 다시 써보면 Flow Equation을 완성할 수 있습니다.</p>
+<p><span class="math display">\[
+\mathbf{r}=\mathbf{M} \cdot \mathbf{r}
+\]</span></p>
+<p>앞서 살펴본 간단한 그래프 예시를 가져와서 flow equation을 매트릭스 연산으로 표현해보면 아래와 같습니다. (flow equation은 앞내용을 참고)</p>
+<p><img src="https://i.imgur.com/jCDl5an.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/j0z5Qm7.png?1" class="img-fluid"></p>
+</section>
+<section id="connection-to-random-walk" class="level2">
+<h2 class="anchored" data-anchor-id="connection-to-random-walk">Connection to Random Walk</h2>
+<p>다음과 같은 조건을 만족하며 랜덤하게 웹페이지들을 돌아다니고 있는 유저를 생각해보겠습니다.</p>
+<ol type="1">
+<li>시점 <span class="math inline">\(t\)</span>에 페이지 <span class="math inline">\(i\)</span>에 있습니다.</li>
+<li>다음 시점 <span class="math inline">\(t+1\)</span>에 페이지 <span class="math inline">\(i\)</span>로부터 나가는 방향의 out-link들 중에 uniform하게 선택하여 서핑을 합니다.</li>
+<li>앞서 선택된 out-link를 통해 <span class="math inline">\(i\)</span>와 연결된 <span class="math inline">\(j\)</span> 페이지에 도달합니다.</li>
+<li>이 과정(1~3)을 무한으로 반복합니다.</li>
+</ol>
+<p><img src="https://i.imgur.com/mFB2J6y.png?1" class="img-fluid"></p>
+<p>여기에서 우리는 <code>시점</code> 의 개념을 고려하여 새로운 개념 정의를 하나 할 수 있습니다.</p>
+<p><span class="math display">\[
+\mathbf{p(t)}
+\]</span></p>
+<p><span class="math inline">\(\mathbf{p(t)}\)</span>는 확률 벡터(probability distribution)로, 이 벡터의 <span class="math inline">\(i\)</span>번째 요소는 앞서 가정한 유저가 <strong>시점 <span class="math inline">\(t\)</span>에 페이지 <span class="math inline">\(i\)</span>에 있을 확률</strong>을 나타냅니다.</p>
+</section>
+<section id="the-stationary-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="the-stationary-distribution">The Stationary Distribution</h2>
+<p>앞서 정의한 <span class="math inline">\(\mathbf{p(t)}\)</span>를 가지고 이 유저가 시점 <strong><span class="math inline">\(t+1\)</span>에 있을 확률분포는</strong> 다음과 같이 계산합니다.</p>
+<p><span class="math display">\[
+\mathbf{p(t+1)}=\mathbf{M} \cdot \mathbf{p(t)}
+\]</span></p>
+<blockquote class="blockquote">
+<p>💡 만약에 유저가 웹 서핑을 계속하다가 <span class="math inline">\(\mathbf{p(t+1)} = \mathbf{p(t)}\)</span> 같은 상황이 되면 어떨까요?</p>
+</blockquote>
+<p><span class="math display">\[
+\mathbf{p(t+1)}=\mathbf{M} \cdot \mathbf{p(t)} = \mathbf{p(t)}
+\]</span></p>
+<p>이러한 상황에서는 더 이상 유저가 특정 페이지에 있을 확률이 변하지 않고 유지되는 경우가 되며, 이를 <strong>stationary distribution of a random walk</strong> 라고 합니다.</p>
+<p>이러한 형태는 낮설지가 않은데, 앞서 rank vector <span class="math inline">\(\mathbf{r}\)</span>가 매트릭스 <span class="math inline">\(\mathbf{M}\)</span>과 flow equation을 구성할 때 이러한 꼴이었으며, 따라서 <span class="math inline">\(\mathbf{r}\)</span>은 <strong>stationary distribution of a random walk</strong> 입니다.</p>
+</section>
+<section id="eigenvector-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="eigenvector-formulation">Eigenvector Formulation</h2>
+<p>이전 Lecture 2에서 잠시 배웠던 <strong>eigenvector와 eignvalue</strong>를 생각해보면 다음 수식을 떠올려볼 수 있습니다.</p>
+<p><span class="math display">\[
+\lambda \mathbf{c} = \mathbf{A} \mathbf{c}
+\]</span></p>
+<p>여기에서 flow equation을 다시 위와 같은 꼴로 작성해보면, 아래와 같이 eigenvalue가 1이고 eigenvector가 <span class="math inline">\(\mathbf{r}\)</span>인 수식으로 해석될 수 있습니다.</p>
+<p><span class="math display">\[
+1 \cdot \mathbf{r}=\mathbf{M} \cdot \mathbf{r}
+\]</span></p>
+<p>따라서 <span class="math inline">\(\mathbf{r}\)</span>은 매트릭스 <span class="math inline">\(\mathbf{M}\)</span>의 <strong>principle eigenvector</strong>(eigenvalue 1)이며, 임의의 벡터 <span class="math inline">\(\mathbf{u}\)</span>에서 시작해서 계속 매트릭스 <span class="math inline">\(\mathbf{M}\)</span>을 곱하여 극한 <span class="math inline">\(\mathbf{M}(\mathbf{M}(...(\mathbf{M}(\mathbf{M}\mathbf{u}))))\)</span>으로 도달하게되는 <strong>long-term distribution</strong>이 됩니다. 이러한 방식으로 <span class="math inline">\(\mathbf{r}\)</span>을 구하는 방법을 <strong>Power iteration</strong> 이라고 합니다.</p>
+</section>
+<section id="pagerank-정리" class="level2">
+<h2 class="anchored" data-anchor-id="pagerank-정리">PageRank 정리</h2>
+<ul>
+<li>웹 구조에서 볼 수 있는 link들을 기반으로 node들의 importance를 측정할 수 있다.</li>
+<li>랜덤하게 웹 서핑하는 유저 모델은 stochastic advacency matrix <span class="math inline">\(\mathbf{M}\)</span>으로 나타낼 수 있다.</li>
+<li>PageRank 수식은 <span class="math inline">\(\mathbf{r} = \mathbf{M}\mathbf{r}\)</span> 이며, <span class="math inline">\(\mathbf{r}\)</span>은 (1) 매트릭스 <span class="math inline">\(\mathbf{M}\)</span>의 principle eigenvector,</li>
+</ul>
+<ol start="2" type="1">
+<li>stationary distribution of a random walk 2가지로 해석될 수 있다.</li>
+</ol>
+<hr>
+<blockquote class="blockquote">
+<p>Original Lecture Video : <a href="https://youtu.be/TU0ankRcHmo">CS224W: Machine Learning with Graphs 2021 Lecture 4.1 - PageRank</a></p>
+</blockquote>
+</section>
+</section>
+<section id="pagerank-how-to-solve" class="level1">
+<h1>4.2 - PageRank, How to Solve?</h1>
+<p>이전의 강의에서 Powe iteration 방법으로 반복적인 매트릭스 곱 연산으로 <span class="math inline">\(\mathbf{r}\)</span>을 구할 수 있음을 확인했습니다. 이 방법에 대해 조금 더 구체적으로 살펴보겠습니다.</p>
+<section id="power-iteration-method" class="level2">
+<h2 class="anchored" data-anchor-id="power-iteration-method">Power Iteration Method</h2>
+<p>power iteration은 2가지 표현식이 있는데 하나는 벡터의 요소 관점에서의 업데이트 식(왼쪽)과 다른 하나는 매트릭스 관점의 업데이트 식(오른쪽)으로 나타낼 수 있습니다.</p>
+<p><img src="https://i.imgur.com/EvHE2Zq.png?1" class="img-fluid"></p>
+<p><strong>과정</strong>을 살펴보면 다음과 같습니다.</p>
+<ol type="1">
+<li>처음 초기화로 모든 노드의 importance score를 똑같은 값으로 만들어 줍니다.(반복적인 연산으로 수렴을 보장하므로 사실 어떤 값으로 초기화하든 상관없습니다.) <span class="math inline">\(\boldsymbol{r}^{(0)}=[1 / N, \ldots ., 1 / N]^{T}\)</span></li>
+<li>반복적인 연산을 하면서 <span class="math inline">\(\mathbf{r}\)</span> 값을 업데이트합니다. <span class="math inline">\(\boldsymbol{r}^{(t+1)}=\boldsymbol{M} \cdot \boldsymbol{r}^{(t)}\)</span></li>
+<li>수렴조건 <span class="math inline">\(\left\|\boldsymbol{r}^{(\boldsymbol{t}+\mathbf{1})}-\boldsymbol{r}^{(t)}\right\|_{1}&lt;\varepsilon\)</span> 을 만족할 때까지 2번 과정의 연산을 진행합니다.</li>
+</ol>
+<p>예시 그래프에서의 power iteration 과정은 다음과 같습니다.</p>
+<p><img src="https://i.imgur.com/cLqhzSc.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/ucqymgk.png?1" class="img-fluid"></p>
+</section>
+<section id="three-questions" class="level2">
+<h2 class="anchored" data-anchor-id="three-questions">Three Questions</h2>
+<ol type="1">
+<li><strong>Does this converge?</strong> 반복적인 연산과정을 통해 값이 수렴하는가?</li>
+<li><strong>Does it converge to what we want?</strong> 수렴한 값이 우리가 원하는 값인가?</li>
+<li><strong>Are results reasonable?</strong> 연산 결과가 합당한가?(말이 되는가?)</li>
+</ol>
+<p><em>(어색한 한국어 번역보다 영어로된 질문에서 얻어가는 insight가 좋을 것 같습니다.)</em></p>
+</section>
+<section id="problems" class="level2">
+<h2 class="anchored" data-anchor-id="problems">Problems</h2>
+<p>PageRank에는 2가지의 문제가 있습니다.</p>
+<ol type="1">
+<li><strong>Dead Ends</strong></li>
+</ol>
+<p>out-link를 가지지 않는 일부 페이지(노드)들에서 생기는 문제로 이런 페이지들에서 importance가 <code>leak out</code> 됩니다. leak out의 <code>세어나가다</code> 라는 뜻 그대로 importance flow의 흐름에서 값이 세어나가는 문제를 말합니다.</p>
+<p>아래의 예시에서 페이지 b에서 나가는 out-link가 없다보니 importance update를 한 결과가 <span class="math inline">\(r_a = 0, r_b=0\)</span>이 됨을 확인할 수 있습니다. 이는 앞서 page rank <span class="math inline">\(\mathbf{r}\)</span> vector의 정의에서 약속한 <strong>모든 노드의 importance의 합이 1이 된다</strong>는 <code>column stochastic</code> 수학적 전제에서 벗어난 결과 입니다.</p>
+<p><img src="https://i.imgur.com/XGRYKJe.png?1" class="img-fluid"></p>
+<ol type="1">
+<li><strong>Spider traps</strong></li>
+</ol>
+<p>특정 페이지의 모든 out-link들이 다른페이지로 나가지 않아 결국 spider trap 페이지가 모든 importance 값을 독차지하게 됩니다.</p>
+<p>아래의 예시에서 a에서 walk를 시작하더라고 b로 이동한 후 b에서 빠져나올 수 없습니다. 이런 경우 importance update 결과 모든 importance를 페이지 b가 가지게 되어 <span class="math inline">\(r_a = 0, r_b=1\)</span>이 됩니다. 이런 경우 페이지 a에 아무리 큰 웹 그래프가 연결되어 있다고 하더라도 이동할 수 없습니다. 사실 spider trap은 <code>column stochastic</code>을 만족하기 때문에 수학적으로 문제되진 않습니다. 하지만 <code>우리가 원하지 않는 값에 수렴하는 문제</code>로 볼 수 있습니다.</p>
+<p><img src="https://i.imgur.com/cKsXAsY.png?1" class="img-fluid"></p>
+</section>
+<section id="solutions" class="level2">
+<h2 class="anchored" data-anchor-id="solutions">Solutions</h2>
+<p>위의 2가지 문제들 모두 <strong>Teleports</strong>로 해결할 수 있습니다.</p>
+<p><img src="https://i.imgur.com/26GjgNp.png?1" class="img-fluid"></p>
+<ol type="1">
+<li><strong>Dead Ends</strong>를 Teleports로 해결하기</li>
+</ol>
+<p>Dead Ends인 m 페이지에서 column stochastic을 만족하지 않고 모든 값이 0이 되지 않도록 자신을 포함한 그래프의 모든 노드들로 uniform random 하게 teleport 이동을 하도록 합니다. 이때 그래프의 노드가 총 3개이므로 m열의 행렬값을 <span class="math inline">\(1/3\)</span>으로 채워 <span class="math inline">\(\mathbf{M}\)</span>을 완성합니다.</p>
+<p><img src="https://i.imgur.com/bwVrukA.png?1" class="img-fluid"></p>
+<ol type="1">
+<li><strong>Spider Traps</strong>를 Teleports로 해결하기</li>
+</ol>
+<p>Spier Trap인 m 페이지에서 다른 노드로 빠져나갈 수 있도록 일정 확률 <span class="math inline">\(1-\beta\)</span>만큼 random 페이지로 점핑(teleport)할 수 있도록 합니다. 즉, 확률 <span class="math inline">\(\beta\)</span>만큼은 원래 그래프의 out-links 중에 골라서(random) 이동하고 나머지 확률(<span class="math inline">\(1-\beta\)</span>)로는 out-link와 상관없이 그래프의 모든 페이지들 중에 골라서 이동하여 거미줄, Spider trap에서 벗어나게 되는 것 입니다. 보통 <span class="math inline">\(\beta\)</span>값으로는 0.8~0.9값을 사용하는 것이 일반적입니다.</p>
+<p><img src="https://i.imgur.com/wZUsNOu.png?1" class="img-fluid"></p>
+</section>
+<section id="the-google-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="the-google-matrix">The Google Matrix</h2>
+<p>PageRank에서 생길 수 있는 2가지 문제를 Teleport로 해결한다면 PageRank Equation은 다음과 같이 바꿀 수 있습니다. <strong>첫번째 항</strong>은 기존의 수식에 있던 부분으로 페이지 <span class="math inline">\(i\)</span>의 out-link를 random하게 골라서 이동하는 것에다 확률 <span class="math inline">\(\beta\)</span>값을 곱해 보통 0.8~0.9의 확률로 out-link를 통해 이동하게 합니다.</p>
+<p><strong>두번째 항</strong>은 Teleport를로 out-link와 상관없이 그래프의 모든 페이지들중 하나로 랜덤하게 순간이동하는 것을 수식적으로 표현한 부분입니다. 그래프에 존재하는 모든 페이지의 수를 <span class="math inline">\(N\)</span>이라고 할 때, 추가적으로 <span class="math inline">\(1/N\)</span>의 확률로 페이지 <span class="math inline">\(j\)</span>로 갈 수 있고 이는 앞서 확률 <span class="math inline">\(\beta\)</span>를 제외한 나머지 확률, 약 0.2~0.1의 확률로 이동하는 것이므로 <span class="math inline">\(1-\beta\)</span>를 곱해줍니다.</p>
+<p><span class="math display">\[
+r_{j}=\sum_{i \rightarrow j} \beta \frac{r_{i}}{d_{i}}+(1-\beta) \frac{1}{N}
+\]</span></p>
+<p>(단, 위의 수식은 <span class="math inline">\(\mathbf{M}\)</span>에 dead ends가 없다고 가정하며, 실제로 모든 dead ends를 없애거나 dead ends인 부분들에는 random teleport를 확률1로 따르게 하여 계속 다른 노드로 이동하게 할 수 있습니다.)</p>
+<p><strong>구글 매트릭스</strong>는 이와 크게 다르지 않습니다. 단지 위의 PageRank equation을 <strong>행렬식으로</strong> 바꿔쓰면 구글 매트릭스가 됩니다. 각각의 항들이 의미하는 바는 위에서 설명된 것과 동일하며, 두번째 항의 <span class="math inline">\(\left[\frac{1}{N}\right]_{N \times N}\)</span>는 행렬의 모든 원소가 <span class="math inline">\(\frac{1}{N}\)</span>으로 채워진 <span class="math inline">\(N \times N\)</span>차원의 행렬을 말합니다.</p>
+<p><span class="math display">\[
+G=\beta M+(1-\beta)\left[\frac{1}{N}\right]_{N \times N}
+\]</span></p>
+</section>
+<section id="random-teleports-beta0.8" class="level2">
+<h2 class="anchored" data-anchor-id="random-teleports-beta0.8">Random Teleports (<span class="math inline">\(\beta=0.8\)</span>)</h2>
+<p>아래의 <span class="math inline">\(\beta=0.8\)</span>일 때 Random Teleports 예시에서 검은색 선들은 teleports를 적용하지 않았을 때의 그래프의 directed links를 표현하며 초록색 선들은 0.2확률의 teleports가 추가된 부분을 나타냅니다. Power iteration을 통해 계산되면 페이지 <span class="math inline">\(y, a, m\)</span>이 각각 <span class="math inline">\(7/33, 5/33, 21/33\)</span>으로 수렴하는 것을 알 수 있고 <strong>spider trap인 페이지 m</strong>이 모든 importance를 흡수하지 않는 것을 확인할 수 있습니다.</p>
+<p><img src="https://i.imgur.com/NwNOgV6.png?1" class="img-fluid"></p>
+</section>
+<section id="solving-pagerank-정리" class="level2">
+<h2 class="anchored" data-anchor-id="solving-pagerank-정리">Solving PageRank 정리</h2>
+<ul>
+<li>PageRank <span class="math inline">\(\mathbf{r} = \mathbf{G} \mathbf{r}\)</span>을 power iteration method로 풀 수 있다.</li>
+<li>PageRank에서 생길 수 있는 문제들인 <strong>Dead Ends와 Spider Traps</strong>를 <strong>Random Uniform Teleportation</strong>으로 해결할 수 있다.</li>
+</ul>
+<hr>
+<blockquote class="blockquote">
+<p>Original Lecture Video : <a href="https://youtu.be/rK2ZBmQHVVs">CS224W: Machine Learning with Graphs 2021 Lecture 4.2 - PageRank: How to Solve?</a></p>
+</blockquote>
+</section>
+</section>
+<section id="random-walk-with-restarts" class="level1">
+<h1>4.3 - Random Walk with Restarts</h1>
+<section id="recommendation" class="level2">
+<h2 class="anchored" data-anchor-id="recommendation">Recommendation</h2>
+<p>추천 시스템에서 이분그래프(Bipartite graph)로 user와 item의 (구매)관계를 나타낸 <strong>Bipartite User-Item Graph</strong>는 다음 그림과 같습니다. 여기에서 <strong><code>특정 item Q를 구매한 user에게 어떤 item을 추천해주는 것이 좋을지</code></strong>를 고민한다면, 직관적으로 item Q가 item P와 비슷하게 user들과 관계를 가지고 있을 때 item P를 이 유저에게 추천하는 것이 좋을 것이라고 생각할 수 있습니다. 즉, <strong>item Q와 item P가 얼마나 가까운 관계인지 판단하는 것</strong>이 중요합니다.</p>
+<p><img src="https://i.imgur.com/G3dopX8.png?1" class="img-fluid"></p>
+</section>
+<section id="node-proximity-measurements" class="level2">
+<h2 class="anchored" data-anchor-id="node-proximity-measurements">Node proximity Measurements</h2>
+<p>노드 근접성(proximity) 측정에 대해 생각해보기 위해 아래의 3가지 케이스를 보겠습니다. <code>A-A’</code>은 <code>B-B’</code>보다 더 가까운 관계를 가지고 있다고 할 수 있습니다. 왜냐하면 <code>A-A’</code> path에서 user을 한번만 거치는데 반해, <code>B-B’</code>path에서는 B-user-item-user-B’ 로 path의 길이가 더 길기 때문입니다. <code>A-A’</code>와 <code>C-C’</code>를 비교해보면 <code>C-C’</code>이 더 가까운 관계를 가지고 있다고 판단할 수 있는데 그 이유는 <code>C-C’</code>이 <code>A-A’</code>보다 더 많은 공통의 이웃(Common Neighbors)를 가지고 있기 때문입니다. <code>C-C’</code>은 <code>A-A’</code>의 shortest path가 2개있는 것으로도 볼 수 있습니다.</p>
+<p><img src="https://i.imgur.com/H1VOUBR.png?1" class="img-fluid"></p>
+</section>
+<section id="proximity-on-graphs" class="level2">
+<h2 class="anchored" data-anchor-id="proximity-on-graphs">Proximity on Graphs</h2>
+<p>이전에 PageRank를 다시 떠올려보면, (1) rank는 node의 “importance”를 정의하며 (2) 그래프의 모든 node들에 균일 분포로 teleport 이동을 할 수 있는 알고리즘이었습니다.</p>
+<p>여기에 좀 더 아이디어를 덧붙여서 <strong><code>Personalized PageRank</code></strong> 알고리즘을 생각해 볼 수 있습니다. 그래프의 모든 노드들에 대해 균일 분포로 teleport 이동을 하는 것이 아닌, <strong>그래프 노드들의 부분집합(subset) <span class="math inline">\(\mathbf{S}\)</span>의 노드들로만</strong> teleport 이동을 하도록 할 수 있습니다. 모든 노드들로 랜덤하게 teleport하지 않고 <strong>좀 더 연관성이 높은 노드들로 teleport할 수 있도록</strong> 하는 것입니다. item Q와 item P가 더 연관성이 높다는 것(Node proxmity ↑)을 어떻게 알 수 있을까요? 이는 <strong>Random Walks</strong>로 확인해볼 수 있습니다.</p>
+</section>
+<section id="random-walks" class="level2">
+<h2 class="anchored" data-anchor-id="random-walks">Random Walks</h2>
+<p>item Q가 우리가 알고싶은 item 노드들의 집합인 <code>QUERY_NODES</code>집합에 속해있다고 해봅시다. <strong>Bipartite User-Item Graph 상에서</strong> <code>QUERY_NODES</code> 집합에 속해 있는 어떤 노드(item Q)에서 시작하여 랜덤하게 움직이면서 과정을 기록합니다. 이 과정을 기록한다는 것은 item↔︎user 사이를 계속 랜덤하게 움직이면서 방문(visit)하게 된 item 노드에는 +1 count를 하는 것을 의미합니다. 이렇게 랜덤하게 움직이면서 이동을 결정할 때마다 일정 확률 <code>ALPHA</code> 만큼 재시작을 하게되는데, 재시작시에는 <code>QUERY_NODES</code>집합에 속해 있는 하나의 노드로 이동해서 다시 랜덤하게 움직이기 시작합니다. (아래 pseudo code 참고)</p>
+<p><img src="https://i.imgur.com/kG31TGo.png?1" class="img-fluid"></p>
+<p>이렇게 계속 Random Walks를 하다보면 item 노드의 visit 수가 높을수록 query item Q와 높은 관계성을 가진것으로 판단할 수 있습니다.</p>
+<p><img src="https://i.imgur.com/U4WkIHE.png?1" class="img-fluid"> <strong>Benefits</strong></p>
+<p>이와 같은 Random Walks를 통한 시뮬레이션과 visit 수로 노드들간의 근접성(proximity)을 판단하는데 좋은 이유는 다음과 같은 사항들을 고려하여 similarity를 나타낼 수 있는 방법이기 때문입니다.</p>
+<ul>
+<li>Multiple connnections</li>
+<li>Multiple paths</li>
+<li>Direct and Indirect connections</li>
+<li>Degree of the node</li>
+</ul>
+</section>
+<section id="pagerank-varients-정리" class="level2">
+<h2 class="anchored" data-anchor-id="pagerank-varients-정리">PageRank Varients 정리</h2>
+<p>PageRank와 이를 변형한 총 3가지 알고리즘들을 정리하면 다음과 같습니다.</p>
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>PageRank</th>
+<th>Personalized PR</th>
+<th>Random Walk w/ Restarts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>모든 노드들에 같은 확률로 teleport 이동</td>
+<td>특정 노드들로 특정 확률을 가지고 teleport 이동</td>
+<td>항상 똑같은 1개의 노드로 이동</td>
+</tr>
+</tbody>
+</table>
+<p><img src="https://i.imgur.com/GJGKezA.png?1" class="img-fluid"></p>
+<hr>
+<blockquote class="blockquote">
+<p>Original Lecture Video : <a href="https://youtu.be/HbzQzUaJ_9I">CS224W: Machine Learning with Graphs 2021 Lecture 4.3 - Random Walk with Restarts</a></p>
+</blockquote>
+</section>
+</section>
+<section id="matrix-factorization-and-node-embeddings" class="level1 page-columns page-full">
+<h1>4.4 - Matrix Factorization and Node Embeddings</h1>
+<section id="recall-node-embeddings-embedding-matrix" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="recall-node-embeddings-embedding-matrix">Recall: Node Embeddings &amp; Embedding matrix</h2>
+<p>이전 강의에서 배웠던 embedding matrix <span class="math inline">\(\mathbf{Z}\)</span>에 대해 다시 떠올려봅시다. 이 매트릭스는 그래프의 각 노드들을 잠재변수 공간(embedding space)으로 encoding하는 행렬로 열의 차원은 embedding하는 크기, 행의 차원은 그래프에 있는 노드의 수가 됩니다. 이 매트릭스의 한 열은 특정 노드 <span class="math inline">\(u\)</span>의 embedding vector <span class="math inline">\(\mathbf{z}_u\)</span>를 나타내게 됩니다.</p>
+<p><img src="https://i.imgur.com/Tz0pFbz.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/EdjhAkW.png?1" class="img-fluid"></p>
+<p>이러한 Node embedding에서 objective는 그래프상에서 실제로 유사한 노드들의 simliarity가 embedding vector들의 내적(inner product)값도 높도록 만드는 것입니다.</p>
+<aside>
+<p>📌 Objective: Maximize <span class="math inline">\(\mathbf{z}_{v}^{\mathrm{T}} \mathbf{z}_{u}\)</span> for node pairs <span class="math inline">\((u, v)\)</span> that are similar</p>
+</aside>
+</section>
+<section id="matrix-factorization" class="level2">
+<h2 class="anchored" data-anchor-id="matrix-factorization">Matrix Factorization</h2>
+<p>Embedding matrix를 <a href="https://en.wikipedia.org/wiki/Matrix_decomposition">Matriz Factorization</a> 관점에서 다시 생각해봅시다. 그래프를 노드들간의 연결이 되어 있으면 1, 아니면 0으로 나타낸 인접행렬 <span class="math inline">\(\mathbf{A}\)</span>을 embedding matrix <span class="math inline">\(\mathbf{Z}\)</span>로 factorization 한다고 생각해볼 수 있습니다. 즉 <span class="math inline">\(\mathbf{Z}^{\mathrm{T}}\)</span>와 <span class="math inline">\(\mathbf{Z}\)</span>의 내적으로 인접행렬 <span class="math inline">\(\mathbf{A}\)</span>를 만드는 것입니다.</p>
+<p><span class="math display">\[
+\mathbf{Z}^{\mathrm{T}} \mathbf{Z} = \mathbf{A}
+\]</span></p>
+<p><img src="https://i.imgur.com/cYKWp52.png?1" class="img-fluid"></p>
+<p>하지만 embedding matrix <span class="math inline">\(\mathbf{Z}\)</span>의 행의 수, 즉 embedding dimension <span class="math inline">\(d\)</span>는 노드의 수 <span class="math inline">\(n\)</span>보다 작으므로 완벽한 factorization을 할 수 없고 대신에 이를 최적화 기법을 사용하여 근접(approzimate)시킬 수 있습니다. 이 최적화를 목적함수는 다음과 같습니다.</p>
+<p><span class="math display">\[
+\min _{\mathbf{Z}}\left\|A-\boldsymbol{Z}^{T} \boldsymbol{Z}\right\|_{2}
+\]</span></p>
+<p>결론은 edge connectivity로 정의된 node similarity을 나타내는 decoder(<span class="math inline">\(\mathbf{Z}\)</span>)의 내적은 <span class="math inline">\(\mathbf{A}\)</span>의 matrix factorization과 동일하다는 것입니다.</p>
+</section>
+<section id="randomwalk-based-similarity" class="level2">
+<h2 class="anchored" data-anchor-id="randomwalk-based-similarity">RandomWalk-based Similarity</h2>
+<p>DeepWalk와 node2vec 알고리즘에서는 random walks를 기반으로한 좀 더 복잡한 node similarity를 사용합니다. 2개의 알고리즘 모두에서 <strong>matrix factorization</strong>을 사용하고 있습니다. DeepWalk에서 사용하는 node simliarity는 다음과 같이 정의됩니다. (node2vec은 이보다 조금 더 복잡합니다. 자세한 내용을 확인하고 싶으면 <a href="https://arxiv.org/abs/1710.02971">Network Embedding as Matrix Factorization paper</a>를 참고)</p>
+<p><img src="https://i.imgur.com/Ny6RVJr.png?1" class="img-fluid"></p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>Matrix factorization과 random walk로 node embedding을 할 경우 몇가지 제약(단점)이 있습니다.</p>
+<ol type="1">
+<li><strong>그래프에 새로운 노드가 생겼을 때 대응하지 못합니다.</strong> training과정에서 보지 못한 노드가 생겼을 때 scratch부터 다시 계산해야 합니다.</li>
+</ol>
+<p><img src="https://i.imgur.com/YfxHzOz.png?1" class="img-fluid"></p>
+<ol type="1">
+<li><strong>구조적인 유사성을 파악하지 못합니다.</strong> 아래의 그림에서 <code>1-2-3</code>과 <code>11-12-13</code>은 그래프에서 비슷한 구조를 가지고 있지만 각 노드마다 unique한 embedding 값으로 인해 구조적인 유사성을 파악하지 못합니다.</li>
+</ol>
+<p><img src="https://i.imgur.com/Zu8UBla.png?1" class="img-fluid"></p>
+<ol type="1">
+<li><strong>노드, 엣지, 그래프의 feature 정보를 활용할 수 없습니다.</strong> DeepWalk나 node2vec에 쓰인 embedding은 노드에 있는 feature 정보를 활용할 수 없습니다. 이는 추후에 배울 <code>Deep Representation Learning</code>으로 해결할 수 있습니다.</li>
+</ol>
+<p><img src="https://i.imgur.com/31Jj1Pb.png" class="img-fluid"></p>
+</section>
+<section id="algorithms-정리" class="level2">
+<h2 class="anchored" data-anchor-id="algorithms-정리">Algorithms 정리</h2>
+<ul>
+<li>PageRank: 그래프에서 노드의 importance를 측정하는 알고리즘이며 인접행렬의 power iteration으로 계산할 수 있다.
+<ul>
+<li>총 3가지 관점에서 해석할 수 있다.</li>
+<li><ol type="1">
+<li>Flow formulation</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Random walk &amp; Stationary distribution</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>Linear Algebra - eigenvector</li>
+</ol></li>
+</ul></li>
+<li>Personalized PageRank(PPR): PageRank에서 좀 더 발전시킨 알고리즘으로 random walk로 구한 특정 노드의 중요성을 더 고려하여 teleport를 하는 알고리즘</li>
+<li>Random walks 기반 Node Embeddings은 Matrix factorization으로 표현될 수 있다.</li>
+</ul>
+<blockquote class="blockquote">
+<p>그래프를 행렬로 이해하는 것은 위의 알고리즘들을 이해하는데 매우 중요하다는 것을 알 수 있습니다.</p>
+</blockquote>
+<hr>
+<blockquote class="blockquote">
+<p>Original Lecture Video : <a href="https://youtu.be/r12qJZZVtqc">CS224W: Machine Learning with Graphs 2021 Lecture 4.4 - Matrix Factorization and Node Embeddings</a></p>
+</blockquote>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

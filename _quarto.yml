@@ -1,0 +1,19 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "CS224W-KOR Blog"
+  navbar:
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/CS224W-KOR
+        
+format:
+  html:
+    theme: lux
+    css: styles.css
+
+
+

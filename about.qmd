@@ -1,0 +1,32 @@
+---
+title: "Study Group"
+image: profile.png
+about:
+  template: trestles
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com
+    - icon: youtube
+      text: CS224W Original Lecture
+      href: https://www.youtube.com/playlist?list=PLoROMvodv4rPLKxIpqhjhPgdQy7imNkDn
+    - icon: clipboard-fill
+      text: Schedule & Slides
+      href: http://web.stanford.edu/class/cs224w/index.html#schedule
+    - icon: house
+      text: CS224w Stanford / Fall 2021 Hompage
+      href: http://web.stanford.edu/class/cs224w/index.html
+
+---
+
+CS224w를 공부하며 정리한 글들을 모아둔 블로그입니다.
+
+# Contributors
+> alphabetical order
+
+- [Eunsung Shin](https://github.com/watanka)
+- [iDeal](https://github.com/d9249)
+- [JooHo Kim](https://github.com/jhtobigs)
+- [Jung Yeon Lee](https://github.com/curieuxjy)
+- [mhkim9714](https://github.com/mhkim9714)
+- [sunLeee](https://github.com/sunLeee)
