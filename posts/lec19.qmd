@@ -1,0 +1,8 @@
+---
+toc: true
+title: "Lecture 19"
+description: Design Space of Graph Neural Networks
+author: "YoojinKim"
+date: "2022-09-09"
+categories: [LEC19]
+---

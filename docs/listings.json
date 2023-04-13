@@ -2,8 +2,25 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/lec19.html",
+      "/posts/lec18.html",
+      "/posts/lec17.html",
+      "/posts/lec16.html",
+      "/posts/lec15.html",
+      "/posts/lec14.html",
+      "/posts/lec13.html",
+      "/posts/lec12.html",
+      "/posts/lec11.html",
+      "/posts/lec10.html",
+      "/posts/lec09.html",
+      "/posts/lec08.html",
+      "/posts/lec07.html",
+      "/posts/lec06.html",
+      "/posts/lec05.html",
       "/posts/lec04.html",
-      "/posts/lec02.html"
+      "/posts/lec03.html",
+      "/posts/lec02.html",
+      "/posts/lec01.html"
     ]
   }
 ]

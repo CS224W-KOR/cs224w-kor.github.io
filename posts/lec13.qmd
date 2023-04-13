@@ -1,0 +1,8 @@
+---
+toc: true
+title: "Lecture 13"
+description: GNNs for Recommender Systems
+author: "mhkim9714"
+date: "2022-08-24"
+categories: [LEC13]
+---

@@ -1,0 +1,1586 @@
+---
+toc: true
+title: "Lecture 5"
+description: Label Propagation for Node Classification
+author: "iDeal"
+date: "2022-07-20"
+categories: [LEC05]
+---
+
+# 5.1 - Message passing and Node Classification
+
+## Message Passing and Node Classification
+
+### Today’s Lecture: outline
+
+Main question today: Given a network with labels on some nodes, how do we assign labels to all other nodes in the network?
+Example: In a network, some nodes are fraudsters, and some other nodes are fully trusted.
+How do you find the other fraudsters and trustworthy nodes?
+We already discussed node embeddings as a method to solve this in Lecture 3
+
+
+
+오늘 주요 질문: 일부 노드에 레이블이 있는 네트워크에서 네트워크의 다른 모든 노드에 레이블을 할당하려면 어떻게 해야 합니까?
+예: 네트워크에서 일부 노드는 사기꾼이고 다른 일부 노드는 완전히 신뢰됩니다.
+다른 사기꾼과 신뢰할 수 있는 노드를 어떻게 생각하십니까?
+우리는 이것을 해결하기 위한 방법으로 노드 임베딩을 이미 강의 3에서 논의하였습니다
+
+
+
+<aside>
+
+💬 이번 수업에서 다룬 내용은 한 그래프에서 특정 노드들에 레이블에 매겨져 있을 때, 다른 노드들에 레이블을 매기는 방법에 대해 다루게 된다.
+
+</aside>
+
+### Example: Node Classification
+
+
+<p align="center">
+    <a href="https://i.imgur.com/uvOI9kt.png"><img src="https://i.imgur.com/uvOI9kt.png" title="source: imgur.com" width="600px"/></a>
+</p>
+
+
+Given labels of some nodes
+Let’s predict labels of unlabeled nodes
+This is called semi-supervised node classification
+
+
+
+일부 노드의 지정된 레이블
+레이블이 없는 노드의 레이블을 예측해 봅시다.
+이를 준지도 노드 분류라고 합니다.
+
+
+
+<aside>
+
+💬 위 그림과 같이 그래프 전체에서 일부 노드에 레이블이 있고, 나머지 노드에는 레이블이 없을 때, 이를 예측하는 방법론을 다룬다.
+
+</aside>
+
+### Today’s Lecture: outline
+
+- Main question today: Given a network with labels on some nodes, how do we assign labels to all other nodes in the network?
+- Today we will discuss an alternative framework: Message passing
+- Intuition: Correlations (dependencies) exist in networks.
+    - In other words: Similar nodes are connected.
+    - Key concept is collective classification: Idea of assigning labels to all nodes in a network together.
+- We will look at three techniques today:
+    - Relational classification
+    - Iterative classification
+    - Correct & Smooth
+
+
+
+- 오늘 주요 질문: 일부 노드에 레이블이 있는 네트워크에서 네트워크의 다른 모든 노드에 레이블을 할당하려면 어떻게 해야 합니까?
+- 오늘은 대체 프레임워크에 대해 논의하겠습니다: 메시지 전달
+- 직관: 상관 관계(의존성) 네트워크에 존재하다
+    - 즉, 유사한 노드가 연결되어 있습니다.
+    - 핵심 개념은 집단 분류: 네트워크의 모든 노드에 label을 함께 할당하는 아이디어입니다.
+- 오늘은 세 가지 기법을 살펴보겠습니다.
+    - 관계구분
+    - 반복구분
+    - 정확하고 매끄러운
+
+
+
+<aside>
+
+💬 이를 Semi-supervised node classification이라 한다고 한다.
+
+이미 레이블이 있는 정보와, 없는 구조를 학습하여 새로이 레이블을 예측하기 때문으로 보인다.
+
+이를 Message Passing이라는 프레임 워크를 살펴보게 되는데, message passing 의 주요 개념은 상관관계(correlation)이다.
+
+즉, 비슷한 노드 간에는 상관관계가 있을 것이기 때문에, 노드 간에 상관관계를 파악하여 이를 이용해 레이블을 예측하고자 한다. 
+
+여기서 반복적으로 labeling 작업이 발생하기 때문에, 이전 수업인 Pagerank와 비슷한 점이 있다고 넘어가자.
+
+</aside>
+
+### Correlations Exist in Networks
+
+- Behaviors of nodes are correlated across the links of the network
+- Correlation: Nearby nodes have the same color (belonging to the same class)
+
+
+
+- 노드의 동작은 네트워크 링크 전체에서 상관됨
+- 상관: 근처 노드의 색상은 동일합니다(동일한 클래스에 속함).
+
+
+
+<p align="center">
+    <a href="https://imgur.com/gL7e4ms">
+        <img src="https://i.imgur.com/gL7e4ms.png" title="source: imgur.com" width="200xp"/>
+    </a>
+</p>
+
+- Two explanations for why behaviors of nodes in networks are correlated:
+
+- 네트워크에서 노드의 동작이 상관되는 이유에 대한 두 가지 설명은 다음과 같다.
+
+<p align="center">
+    <a href="https://imgur.com/W5mmvW9"><img src="https://i.imgur.com/W5mmvW9.png" title="source: imgur.com" width="350xp"/></a>
+</p>
+
+
+
+<aside>
+
+💬 위의 그래프에서, 비슷한 노드(같은 레이블을 가지고 있는 노드, 초록색, 빨간색과 같이)는 근처에 위치하는 것을 알 수 있다.
+이와 같이, 노드 간의 관계를 파악하여, 서로 근접한 노드를 찾을 수 있다면, 거기에 비슷한 레이블을 매길 수 있을 것이다. 
+여기서 이제 어떻게 노드 간의 상관관계를 이끌어 낼 수 있을지 살펴보자.
+노드 간의 상관관계는 Homophily, Influence 두 개념에 의해 정의되어진다. 
+두 개념 모두 사회과학 분야에서 social network를 분석하면서 쓰인 개념으로 보이는데, 하나씩 자세히 살펴보도록 하자.
+
+</aside>
+
+### Social Homophily
+
+- Homophily: The tendency of individuals to associate and bond with similar others
+- *“Birds of a feather flock together”*
+- It has been observed in a vast array of network studies, based on a variety of attributes (e.g., age, gender, organizational role, etc.)
+- Example: Researchers who focus on the same research area are more likely to establish a connection (meeting at conferences, interacting in academic talks, etc.)
+
+
+
+- 동성애: 개인이 유사한 타인과 연관되고 유대감을 갖는 경향
+- "깃털 같은 새들"
+- 다양한 속성(예: 연령, 성별, 조직 역할 등)을 기반으로 한 광범위한 네트워크 연구에서 관찰되었다.
+- 예시: 동일한 연구 분야에 집중하는 연구자는 (학회에서의 회의, 학술 강연에서의 상호작용 등) 연결을 확립할 가능성이 높다.
+
+<p align="center">
+    <a href="https://imgur.com/GYPrMPQ"><img src="https://i.imgur.com/GYPrMPQ.png" title="source: imgur.com" width="150px" /></a>
+</p>
+
+### Homophily: Example
+
+Example of homophily
+
+- Online social network
+    - Nodes = people
+    - Edges = friendship
+    - Node color = interests (sports, arts, etc.)
+- People with the same interest are more closely connected due to homophily
+
+
+
+동음이의 예
+
+- 온라인 소셜 네트워크
+    - 노드 = 사람
+    - 가장자리 = 우정
+    - 노드 색상 = 관심 사항(스포츠, 예술 등)
+- 동종애로 인해 같은 관심사를 가진 사람들이 더 밀접하게 연결되어 있다.
+
+<p align="center">
+    <a href="https://imgur.com/D2BTYyO"><img src="https://i.imgur.com/D2BTYyO.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+
+
+<aside>
+
+💬 개인의 특징은 나이, 성별, 직업, 취미, 거주지 등 다양한 요소가 있을 것이다.
+Homophily는 개인들이 비슷한 특징을 가지는 타인들과 서로 연결되고, 함께 행동하려고 한다는 개념이다. 
+예를 들어, 머신러닝 연구자들은 비슷한 학회를 동시에 참여하고, 비슷한 커뮤니티를 읽고 토론하게 되면서 자연스레 친분을 쌓게 된다. 
+또한, 가수들은 서로 같이 공연하고, 서로의 앨범을 들으면서 서로 사회적으로 연결되게 된다.
+위의 그래프는 한 학교의 학생들을 나타낸 그래프인데, 학생 개인이 노드, 친분이 엣지로 표현되어 있다. 
+이때 노드의 레이블인 색은 각 학생의 관심사로 운동, 예술 등이 있다. 
+직관적으로 살펴보아도 알 수 있지만 총 4개의 작은 그룹으로 나누어질 수 있으며, 각 그룹은 비슷한 관심사를 가지는 학생들이 모여있는 것을 알 수 있다. 
+이를 Homophily라고 할 수 있을 것이다.
+
+</aside>
+
+### Social Influence: Example
+
+- Influence: Social connections can influence the individual characteristics of a person.
+    - Example: I recommend my musical preferences to my friends, until one of them grows to like my same favorite genres!
+
+- 영향: 사회적 관계는 개인의 특성에 영향을 미칠 수 있다.
+    - 예시: 친구 중 한 명이 제가 좋아하는 장르를 좋아하게 될 때까지 친구들에게 제 음악적 취향을 추천합니다!
+
+<p align="center">
+    <a href="https://imgur.com/vrr1A0X"><img src="https://i.imgur.com/vrr1A0X.png" title="source: imgur.com" width="150px"/></a>
+</p>
+
+
+
+<aside>
+
+💬 Influence는 사회적으로 연결된 개인 간에는 서로 영향을 주고 받으면서 비슷한 특징을 가지게 된다는 것을 의미한다.
+예를 들어, 내가 1, 2학년 때는 경상계열 친구들과 친하게 지내면서, 경제, 사회, 제도 등에 관심을 가지고 해당 직군을 희망했다면, 3, 4학년이 되면서 통계나 수학, 컴퓨터 공학 친구들과 친하게 지내면서 ML, DL, 코딩 등에 관심을 가지고 해당 직군을 희망하게 된 것이 Influence 때문이라고 할 수 있을 것이다.
+
+</aside>
+
+## How do we leverage node correlations in networks?
+
+### Classification with Network Data
+
+- How do we leverage this correlation observed in networks to help predict node labels?
+
+- 네트워크에서 관찰된 이 상관 관계를 활용하여 노드 레이블을 예측하는 방법은 무엇입니까?
+
+<p align="center">
+    <a href="https://imgur.com/NXZyAWe"><img src="https://i.imgur.com/NXZyAWe.png" title="source: imgur.com" width="450px"/></a>
+</p>
+
+
+
+**How do we predict the labels for the nodes in grey?**
+
+노드의 레이블을 회색으로 어떻게 예측합니까?
+
+### Motivation
+
+- Similar nodes are typically close together or directly connected in the network:
+    - Guilt-by-association: If I am connected to a node with label 𝑋, then I am likely to have label 𝑋 as well.
+    - Example: Malicious/benign web page: Malicious web pages link to one another to increase visibility, look credible, and rank higher in search engines
+- Classification label of a node 𝑣 in network may depend on:
+    - Features of 𝑣
+    - Labels of the nodes in 𝑣’s neighborhood
+    - Features of the nodes in 𝑣’s neighborhood
+
+
+
+- 유사한 노드는 일반적으로 네트워크에서 서로 가까이 있거나 직접 연결됩니다.
+    - 연관별 죄책감: 레이블 𝑋이 있는 노드에 연결되어 있다면 레이블 𝑋도 있을 수 있습니다.
+    - 예: 악성/악성 웹 페이지: 악성 웹 페이지는 가시성을 높이고 신뢰도를 높이며 검색 엔진에서 더 높은 순위를 차지하기 위해 서로 연결됩니다.
+- 네트워크에 있는 노드 $v$의 분류 라벨은 다음 조건에 따라 달라질 수 있습니다.
+    - $v$의 기능
+    - $v$의 이웃에 있는 노드의 레이블
+    - $v$의 이웃에 있는 노드의 기능
+
+<aside>
+
+💬 한 그래프 내에서 비슷한 노드는 가까이 위치하거나 직접 연결되어 있을 것이다.
+이를 Guilt-by-association이라고 하는데, 노드 b가 아직 레이블이 없는 상태에서, 이웃노드 x가 1로 레이블 되어 있다면, 이웃노드 x와 가깝기 때문에 노드 b 역시 1로 레이블 될 가능성이 높다는 개념이다.
+구체적인 예시로는 스팸 사이트들이 안전한 사이트와의 연결고리는 생성할 수 없기 때문에, 노출도와 신뢰도를 높이기 위해 서로 링크를 연결하는 경향이 있는데, 이를 이용해서 스팸 사이트 하나를 잡을 수 있다면, 서로 연결된 다른 스팸 사이트도 색출 할 수 있다고 한다.
+이때, 노드 v의 분류에 이용하는 정보들은 다음과 같다.
+1. 노드 v의 변수들
+2. 노드 v의 이웃 노드들의 레이블
+3. 노드 v의 이웃 노드들의 변수들
+
+</aside>
+
+### Semi-supervised Learning
+
+**Formal setting:**
+
+Given:
+
+- Graph
+- Few labeled nodes
+
+Find: Class (red/green) of remaining nodes
+
+Main assumption: There is homophily in the network
+
+
+
+**공식 설정:**
+
+제공됨:
+
+- 그래프
+- 레이블이 지정된 노드 몇 개
+
+찾기: 나머지 노드의 클래스(빨간색/녹색)
+
+주요 가정: 네트워크에 동질성이 있습니다.
+
+<p align="center">
+    <a href="https://imgur.com/UmGyCcL"><img src="https://i.imgur.com/UmGyCcL.png" title="source: imgur.com" width="200px"/></a>
+</p>
+
+Example task:
+
+- Let 𝑨 be a 𝑛×𝑛 adjacency matrix over 𝑛 nodes
+- Let Y = $[0,1]^n$ be a vector of labels:
+    - $Y_v$ = 1  belongs to Class1
+    - $Y_v$ = 0  belongs to Class0
+    - There are unlabeled node needs to be classified
+- Goal: Predict which unlabeled nodes are likely Class 1, and which are likely Class 0
+
+
+
+**작업 예**:
+
+- A를 n개 노드의 nxn 인접 행렬로 설정
+- Y = $[0,1]^n$ 을 레이블 벡터라고 하자:
+    - $Y_v$ = 1이 클래스 1에 속함
+    - $Y_v$ = 0이 클래스 0에 속함
+    - 라벨이 지정되지 않은 노드가 분류되어야 합니다
+- 목표: 레이블이 없는 노드가 클래스 1일 가능성이 높고 클래스 0일 가능성이 높은 노드를 예측합니다.
+
+
+
+<aside>
+
+💬 실제로 이용하게 되는 입력값은
+인접행렬: $A_{n*n}$, 레이블 벡터 $Y=[0,1]^n$, $Y_v$ **= 1이 클래스 1**에 속함, $Y_v$ **= 0이 클래스 0**에 속함이 있으며, 
+아직 레이블이 없는 노드에 대해 레이블이 0 혹은 1일 확률을 계산하는 것이 목표이다.
+
+</aside>
+
+### Problem Setting
+
+How to predict the labels $Y_v$ for the unlabeled nodes $v$  (in grey color)?
+Each node $v$ has a feature vector $f_v$
+Labels for some nodes are given (1 for green, 0 for red)
+Task: Find $P(Y_v)$ given all features and the network
+라벨이 없는 노드 $v$(회색)에 대한 레이블 $Y_v$를 예측하는 방법
+각 노드 $v$에는 특징 벡터 $f_v$가 있습니다.
+일부 노드의 라벨이 제공됩니다(녹색은 1, 빨간색은 0).
+작업: 모든 기능 및 네트워크가 주어진 $P(Y_v)$ 찾기
+
+$$
+P(Y_v)=?
+$$
+
+<p align="center">
+    <a href="https://imgur.com/1n2PWNH"><img src="https://i.imgur.com/1n2PWNH.png" title="source: imgur.com" width="350px"/></a>
+</p>
+
+### Example applications:
+
+- Many applications under this setting:
+    - Document classification
+    - Part of speech tagging
+    - Link prediction
+    - Optical character recognition
+    - Image/3D data segmentation
+    - Entity resolution in sensor networks
+    - Spam and fraud detection
+
+
+
+- 이 설정 아래의 많은 응용 프로그램:
+    - 문서구분
+    - 음성 태그의 일부
+    - 링크 예측
+    - 광학식 문자 인식
+    - 영상/3D 데이터 분할
+    - 센서 네트워크의 엔티티 해상도
+    - 스팸 및 부정 행위 탐지
+
+
+
+<aside>
+
+💬 이러한 방법론은 위와 같은 다양한 분야에 적용이 가능하다.
+
+</aside>
+
+### Collective Classification Overview (1)
+
+collective classification을 전반적으로 살펴보면 다음과 같다.
+
+<aside>
+
+📌 Intuition(직관) : 노드 간 상관관계를 이용해 서로 연결된 노드들을 동시에 분류하기
+
+</aside>
+
+이때 1차 마르코프 연쇄를 사용한다. 
+즉, 노드 $\mathrm{v}$ 의 레이블 $Y_{v}$ 를 예측하기 위해서는 이웃노드 $N_{v}$ 만 필요하다는 것이다. 
+2차 마르코프 연쇄를 사용할 경우 $N_{v}$ 의 이웃노드 역시 사용할 것이다. 
+1차 마르포크 연쇄를 사용할 경우 식은 다음과 같아질 것이다.
+
+$$
+P\left(Y_{v}\right)=P\left(Y_{v} \mid N_{v}\right)
+$$
+
+collective classification은 하나의 모델을 이용하거나 기존의 분류모델처럼 한번의 과정으로 구성되지 않고 총 세가지 과정으로 구성된다. 
+
+### Collective Classification Overview (2)
+
+**Local Classifier**
+
+최초로 레이블을 할당하기 위해 사용되는 분류기이다. 
+즉, 그래프에서 레이블이 없는 노드들에 대해 우선 노드를 생성해야 하기 때문에, 기존의 분류문제와 동일하게 구성된다. 
+이때 예측 과정은 각 노드의 변수만 사용하여 이미 레이블이 있는 노드로 학습하고, 레이블이 없는 노드로 예측하게 된다. 
+그래프의 구조적 정보가 사용되지 않는다는 점에 유의하자.
+
+**Relational Classifier**
+
+노드 간 상관관계를 파악하기 위해 이웃 노드의 레이블과 변수를 사용하는 분류기이다. 
+이를 통해 이웃 노드의 레이블과 변수와 현재 노드의 변수를 이용해 현재 노드의 레이블을 예측할 수 있다. 
+이때, 이웃노드의 정보가 사용되기 때문에, 그래프의 구조적 정보가 사용된다.
+
+**Collective Inference**
+
+Collective Classification은 한번의 예측으로 종료되지 않는 것이 핵심이다. 
+특정 조건을 만족할 때까지 각 노드에 대해 분류하고 레이블을 업데이트한다. 
+이때의 조건이란 더이상 레이블이 변하지 않거나, 정해진 횟수를 의미한다. 
+이때 동일한 변수를 가진 노드라 하더라도 그래프의 구조에 따라 최종 예측이 달라질 수 있다는 점을 유념하자.
+
+### Overview of What is Coming
+
+- We focus on semi-supervised binary node classification
+- We will introduce three approaches:
+    - Relational classification
+    - Iterative classification
+    - Correct & Smooth
+
+
+
+- 우리는 준지도 이진 노드 분류에 초점을 맞춘다.
+- 다음 세 가지 접근 방식을 소개합니다.
+    - 관계구분
+    - 반복구분
+    - 정확하고 매끄러운
+
+
+
+[CS224W: Machine Learning with Graphs 2021 Lecture 5.1 - Message passing and Node Classification](https://www.youtube.com/watch?v=6g9vtxUmfwM&list=PLoROMvodv4rPLKxIpqhjhPgdQy7imNkDn&index=14)
+
+
+
+# 5.2 - Relational and Iterative Classification
+
+## Relational Classification
+
+### Probabilistic Relational Classifier
+
+- Idea: Propagate node labels across the network
+    - Class probability $Y_v$ of node $v$ is a weighted average of class probabilities of its neighbors.
+- For labeled nodes $v$, initialize label $Y_v$ with ground-truth label $Y^*_v$.
+- For unlabeled nodes, initialize $Y_v$ = 0.5.
+- Update all nodes in a random order until convergence or until maximum number of iterations is reached.
+- Update for each node $v$ and label $c$ (e.g. 0 or 1 )
+    
+    $$
+    P\left(Y_{v}=c\right)=\frac{1}{\sum_{(v, u) \in E} A_{v, u}} \sum_{(v, u) \in E} A_{v, u} P\left(Y_{u}=c\right)
+    $$
+    
+    - If edges have strength/weight information, $A_{v, u}$ can be the edge weight between $v$ and $u$
+    - $P\left(Y_{v}=c\right)$ is the probability of node $v$ having label $c$
+- Challenges:
+    - Convergence is not guaranteed
+    - Model cannot use node feature information
+
+
+
+- 아이디어: 노드 레이블을 네트워크에 전파
+    - 노드 $v$의 클래스 확률 $Y_v$는 이웃의 클래스 확률에 대한 가중 평균이다.
+- 레이블링된 노드 $v$의 경우 지상 실측 레이블 $Y^*_v$로 레이블 $Y_v$를 초기화한다.
+- 레이블이 없는 노드의 경우 $Y_v$ = 0.5를 초기화합니다.
+- 수렴할 때까지 또는 최대 반복 횟수에 도달할 때까지 모든 노드를 임의의 순서로 업데이트합니다.
+- 각 노드 $v$ 및 레이블 $c$에 대한 업데이트(예: 0 또는 1)
+    
+    $$
+    P\left(Y_{v}=c\right)=\frac{1}{\sum_{(v, u) \in E} A_{v, u}} \sum_{(v, u) \in E} A_{v, u} P\left(Y_{u}=c\right)
+    $$
+    
+    - 가장자리의 강도/무게 정보가 있는 경우 $A_{v,u}$는 $v$와 $u$ 사이의 에지 가중치일 수 있습니다.
+    - $P\left(Y_{v}=c\right)$는 노드 $v$가 $c$ 레이블을 가질 확률이다.
+- 과제:
+    - 수렴이 보장되지 않음
+    - 모델은 노드 피쳐 정보를 사용할 수 없습니다.
+
+
+
+<aside>
+
+💬 기본 아이디어 : 노드 $v$의 레이블 확률 $Y_v$는 노드 $v$의 주변노드의 레이블 확률의 가중평균과 같다.
+즉, 레이블이 없는 노드에 대해 이웃 노드들의 레이블 확률을 가중평균하여 예측하게 된다. 
+이진 분류문제라 가정하고, 모든 노드에 레이블 확률이 존재해야 하기 때문에, 레이블이 없는 노드는 0.5의 확률로 초기화하여 시작하게 된다.
+업데이트는 반복적으로 진행되며, 모든 노드에 대해 수렴하거나 반복횟수에 도달할 경우 멈추게 된다.
+노드 $*v*$에 대한 확률을 계산하는 법은 위 수식과 같다. 
+이때 행렬 A는 인접행렬에 해당한다. 
+즉, 주변의 이웃노드의 확률 $*P\left(Y_{v}=c\right)*$를 평균하여 사용하되, 해당 이웃노드와 연결된 degree만큼 가중치, $*A_{v,u}*$를 주게 된다.
+이때 두가지 문제점이 있다.
+1. 위 수식은 수렴이 보장되지 않는다.
+2. 모델이 노드의 변수를 활용하지 않는다.
+이에 대해선 이후 모델을 통해 개선될 것이라 기대해보자.
+
+</aside>
+
+### Example: Initialization
+
+Initialization:
+
+- All labeled nodes with their labels
+- All unlabeled nodes 0.5 
+(belonging to class 1 with probability 0.5)
+
+
+
+초기화:
+
+- *라벨이 표시된 모든 노드*
+- 표시되지 않은 모든 노드 0.5
+(확률 0.5의 클래스 1에 속함)
+
+<p align="center">
+    <a href="https://imgur.com/vPvX8Qh"><img src="https://i.imgur.com/vPvX8Qh.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 위 그래프에서 본래 레이블이 있는 노드는 녹색과 적색으로 표시가 되어 있다.
+이에 대해 이진분류 문제이기 때문에, 녹색을 기준으로 확률을 계산하여, 녹색 노드는 1, 적색 노드는 0, 레이블이 없는 회색노드는 0.5로 초기화한다.
+
+</aside>
+
+### Example: $1^{st}$ Iteration, Update Node 3
+
+- Update for the $1^{st}$ Iteration:
+    - For node 3, $N_3=[1,2,4]$
+
+
+
+- $1^{st}$ 반복에 대한 업데이트:
+    - 노드 3의 경우 $N_3=[1,2,4]$
+
+<p align="center">
+    <a href="https://imgur.com/DaLEfgG"><img src="https://i.imgur.com/DaLEfgG.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 각 노드별로 이웃노드의 확률을 이용해 순차적으로 확률을 업데이트한다.
+위 그래프의 경우 undirected이고 엣지가 각 노드 간 최대 하나만 존재하기 때문에 단순 평균을 통해 새로운 확률을 계산하게 된다.
+
+</aside>
+
+### Example: $1^{st}$ Iteration, Update Node 4
+
+- Update for the $1^{st}$ Iteration:
+    - For node 4, $N_4=[1,3,5,6]$
+
+
+
+- $1^{st}$ 반복에 대한 업데이트:
+    - 노드 4의 경우 $N_4=[1,3,5,6]$
+
+<p align="center">
+    <a href="https://imgur.com/CAZ4Hi2"><img src="https://i.imgur.com/CAZ4Hi2.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 위에서 업데이트된 3번 노드의 확률을 이용해 4번 노드 역시 업데이트하게 된다.
+즉, 노드를 업데이트하는 순서에 따라 계산이 조금씩 달라지게 된다.
+
+</aside>
+
+### Example: $1^{st}$ Iteration, Update Node 5
+
+- Update for the $1^{st}$ Iteration:
+    - For node 5, $N_5=[4,6,7,8]$
+
+
+
+- $1^{st}$ 반복에 대한 업데이트:
+    - 노드 5의 경우 $N_5=[4,6,7,8]$
+
+<p align="center">
+    <a href="https://imgur.com/KfbtRpU"><img src="https://i.imgur.com/KfbtRpU.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 3, 4번 노드를 업데이트하고 나서 5번 노드를 업데이트한다.
+이때 역시 업데이트된 4번 노드의 확률을 이용하게 된다.
+
+</aside>
+
+### Example: After $1^{st}$ Iteration
+
+After Iteration 1 (a round of updates for all unlabeled nodes)
+반복 후 1 (라벨이 지정되지 않은 모든 노드에 대한 업데이트 라운딩)
+
+<p align="center">
+    <a href="https://imgur.com/Fguf7ms"><img src="https://i.imgur.com/Fguf7ms.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 첫번째 이터가 종료된 후의 모습니다. 9번 노드의 경우 녹색 노드만 연결되어 있기 때문에 확률이 1로 고정된 모습을 보이고 있다.
+이외에 8번 노드 역시 주변에 녹색 노드 2개, 확률이 높은 노드(5번) 한개가 이웃노드이기 때문에 확률이 높은 것을 볼 수 있다. 
+하지만 4번 노드의 경우 녹색 노드와 적색 노드 각각 하나씩 연결되어 있고, 녹색과 가까운 노드와 적색과 가까운 노드 하나씩 연결되어 있어 0.5에 가까운 확률을 보이고 있다.
+
+</aside>
+
+### Example: After $2^{nd}$ Iteration
+
+After Iteration 2 (반복 후 2)
+
+<p align="center">
+    <a href="https://imgur.com/TFAiAXZ"><img src="https://i.imgur.com/TFAiAXZ.png" title="source: imgur.com" /></a>
+</p>
+
+### Example: After $3^{rd}$ Iteration
+
+After Iteration 3 (반복 후 3)
+
+<p align="center">
+    <a href="https://imgur.com/PNeoIVy"><img src="https://i.imgur.com/PNeoIVy.png" title="source: imgur.com" /></a>
+</p>
+
+### Example: After $4^{th}$ Iteration
+
+After Iteration 4 (반복 후 4)
+
+<p align="center">
+    <a href="https://imgur.com/aY3Haqg"><img src="https://i.imgur.com/aY3Haqg.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 이후 0.5보다 확률이 큰 노드들은 class 1이라 분류하고, 0.5보다 작은 노드들은 class 0으로 분류한다.
+class 0 : 1, 2, 3
+class 1 : 4, 5, 6, 7, 8, 9
+
+</aside>
+
+### Example: Convergence
+
+- All scores stabilize after 4 iterations.
+    
+    We therefore predict:
+    
+    - Nodes 4,5,8,9 belong to class 1 ($𝑃_{Y_v}$ > 0.5)
+    - Nodes 3 belong to class 0 ($𝑃_{Y_v}$ < 0.5)
+
+
+
+- 4회 반복 후 모든 점수가 안정됩니다.
+    
+    따라서 다음과 같이 예측한다.
+    
+    - 노드 4,5,8,9가 클래스 1($𝑃_{Y_v}$ > 0.5)에 속함
+    - 노드 3은 클래스 0($𝑃_{Y_v}$ < 0.5)에 속합니다.
+
+<p align="center">
+    <a href="https://imgur.com/j8AFk3S"><img src="https://i.imgur.com/j8AFk3S.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 몇 번의 iterations을 지나자 모든 확률값이 수렴하고 있는 모습을 보여 종료되었으나 이 모델의 수렴이 보장되지 않는 단점이 존재한다.
+이를 이전에 배웠던 개념과 연결지어 생각하자면, Influence가 녹아있는 모델이라고 할 수 있겠다. 
+가까운 노드의 영향을 받아 이웃 노드와 비슷한 레이블 분포를 가지도록 업데이트하고 있기 때문이다. 
+그 결과 8번 노드는 이웃노드가 녹색일 확률이 높으니 해당 분포와 비슷해지고, 4번 노드는 이웃노드로 녹색과 적색에 가까운 노드들이 모두 있어 0.5에 가까운 확률을 가지게 되었다.
+Relational Classification은 그래프의 구조적 정보를 일부 활용하고, 노드 레이블은 활용하지만, 노드의 변수 = node featured information(attributes)를 활용하지 못한다는 단점이 크게 작용한다.
+단지 노드의 라벨과 이웃들의 엣지를 이용하는 것인 네트워크 정보만 사용하게 된다.
+결국 주어진 정보를 최대한 활용하지 못하는 머신러닝 모델은 부족한 점이 많은 모델일 뿐이다.
+
+</aside>
+
+## Iterative Classification
+
+### Iterative Classification
+
+- Relational classifier does not use node attributes.
+- How can one leverage them?
+- Main idea of iterative classification:
+    
+    Classify node $v$ based on its attributes $f_v$ as well as labels $z_v$ of neighbor set $N_v$.
+    
+- Input: Graph
+    - $f_{v}$ : feature vector for node $v$
+    - Some nodes $v$ are labeled with $Y_{v}$
+- Task: Predict label of unlabeled nodes
+- Approach: Train two classifiers:
+$\phi_{1}\left(f_{v}\right)=$ Predict node label based on node feature vector $f_{v}$. This is called base classifier.
+- $\phi_{2}\left(f_{v}, z_{v}\right)=$ Predict label based on node feature vector $f_{v}$ and summary $z_{v}$ of labels of $v'{\text {s }}$ neighbors.
+    
+    This is called relational classifier.
+    
+
+
+- 관계 분류자가 노드 특성을 사용하지 않습니다.
+- 어떻게 그들을 활용할 수 있을까?
+- 반복 분류의 주요 개념:
+    
+    노드 $v$는 속성 $f_v$와 인접 세트 $N_v$의 레이블 $z_v$를 기준으로 분류한다.
+    
+- 입력: 그래프
+    - $f_{v}$ : 노드 $v$의 피쳐 벡터
+    - 일부 노드 $v$는 $Y_{v}$로 레이블 지정됨
+- 작업: 레이블이 없는 노드의 레이블 예측
+- 접근법: 두 가지 분류기 훈련:
+$\phi_{1}\left(f_{v}\right)=$ 노드 특징 벡터 $f_{v}$를 기반으로 노드 레이블을 예측한다. 이를 기본 분류기라고 합니다.
+- $\phi_{2}\left(f_{v}, z_{v}\right)=$ 노드 특징 벡터 $f_{v}$와 $v'{\text {s}}$ 이웃 레이블의 요약 $z_{v}$를 기반으로 레이블을 예측한다.
+    
+    이를 관계 분류기라고 합니다.
+
+ 
+
+<aside>
+
+💬 Relational Classifier는 노드의 변수를 활용하지 않는 것이 단점이라고 했다.
+Iterative Classifier는 노드의 변수를 활용하여 이를 개선했다. 핵심 아이디어는 다음과 같다.
+> 노드 $`v`$를 분류할 때, 노드의 변수 $`f_v`$를 이웃노드 집합 $`N_v`$의 레이블 $`z_u`$와 함께 사용하자.
+입력은 그래프를 사용하며, $f_v$는 노드 $v$의 변수 벡터를 의미하며, 여기서 일부 노드는 레이블 $Y_v$를 갖는다.
+목표는 레이블이 없는 노드에 대해 레이블을 예측하는 것이다.
+이를 위해 활용하는 것은 두 개의 분류기를 활용한다.
+1. $\phi_{1}\left(f_{v}\right)$ : 노드 $v$의 변수 $f_v$ 만을 이용해 레이블을 예측하는 모델
+2. $\phi_{2}\left(f_{v}, z_{v}\right)$: 노드 $v$의 변수 $*f_v*$와 이웃 노드의 레이블에 대한 기술 통계벡터 $*z_v*$를 이용하여 레이블을 예측하는 모델
+$z_u$: 이웃 노드의 라벨을 표현하는 벡터 (라벨의 비율, 개수 등으로 표현된다.)
+
+</aside>
+
+### Computing the Summary $z_v$
+
+How do we compute the summary $z_v$ of labels of $v's$ neighbors $N_v$?
+
+- $z_v$ = vector that captures labels around node $v$
+    - Histogram of the number (or fraction) of each label in $N_v$
+    - Most common label in $N_v$
+    - Number of different labels in $**N_v**$
+
+
+
+$v$의 인접 $N_v$ 레이블의 요약 $z_v$는 어떻게 계산합니까?
+
+- $z_v$ = 노드 $v$ 주변의 레이블을 캡처하는 벡터
+    - $N_v$ 단위의 각 레이블의 숫자(또는 부분) 히스토그램
+    - $N_v$의 가장 일반적인 레이블
+    - $N_v$의 서로 다른 레이블 수
+
+<p align="center">
+    <a href="https://imgur.com/te9M6sa"><img src="https://i.imgur.com/te9M6sa.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 위와 같은 그래프에서 청색 노드에 대한 $z_{v}$ 는 이웃 노드의 색의 count 분포나 존재 유무 분포, 비율 분포 등을 사용해 만들 수 있다.
+- count 분포 : [녹색 노드의 수, 적색 노드의 수] = $[2,1]$
+- 존재 유무 분포 : [녹색 노드 존재 여부, 적색 노드 존재 여부]= $[1,1]$
+- 비율 분포 : [녹색 노드 비율, 적색 노드 비율] =$\left[\frac{2}{3}, \frac{1}{3}\right]$
+    두 분류기를 이용하여 학습과 예측 과정이 조금 복잡한데 크게 두 단계로 나눌 수 있다.
+    
+</aside>
+
+### Architecture of Iterative Classifiers
+
+- Phase 1: Classify based on node attributes alone
+    - On the labeled training set, train two classifiers:
+        - Base classifier: $\phi_{1}\left(f_{v}\right)$ to predict $Y_{v}$ based on $f_{v}$
+        - Relational classifier: $\phi_{2}\left(f_{v}, z_{v}\right)$ to predict $Y_{v}$ based on $f_{v}$ and summary $z_{v}$ of labels of $v^{\prime}$s neighbors
+- Phase 2: Iterate till convergence
+    - On test set, set labels $Y_{v}$ based on the classifier $\phi_{1}$, compute $z_{v}$ and predict the labels with $\phi_{2}$
+    - Repeat for each node $v$ :
+        - Update $z_{v}$ based on $Y_{u}$ for all $u \in N_{v}$
+        - Update $Y_{v}$ based on the new $z_{v}\left(\phi_{2}\right)$
+    - Iterate until class labels stabilize or max number of iterations is reached
+    - Note: Convergence is not guaranteed
+
+
+
+- 1단계: 노드 속성만을 기준으로 분류
+    - 라벨이 부착된 교육 세트에서 두 가지 분류기를 교육합니다.
+        - 기본 분류자: $f_{v}$를 기반으로 $Y_{v}$를 예측하기 위한 $\phi_{1}\left(f_{v}\right)$
+        - 관계 분류자: $f_{v}$와 $v^{\prime}$s 인접 레이블의 요약 $z_{v}$를 기반으로 $Y_{v}$를 예측하기 위한 $\phi_{2}\left(f_{v}, z_{v}\right)$
+- 2단계: 수렴될 때까지 반복
+    - 테스트 세트에서 $\phi_{1}$ 분류기를 기반으로 레이블 $Y_{v}$을 설정하고 $z_{v}$를 계산하고 $\phi_{2}$로 레이블을 예측한다.
+    - 각 노드 $v$에 대해 반복:
+        - 모든 $u \in N_{v}$에 대해 $Y_{u}$를 기준으로 $z_{v}$ 업데이트
+        - 새 $z_{v}\left(\phi_{2}\right)$를 기준으로 $Y_{v}$ 업데이트
+    - 클래스 레이블이 안정되거나 최대 반복 횟수에 도달할 때까지 반복
+    - 참고: 수렴이 보장되지 않음
+
+
+
+<aside>
+
+💬 Phase 1 : **Train**
+학습 데이터의 경우에 모든 노드에 레이블이 달려있다고 간주하고 두 분류기를 학습한다.
+1. $\phi_{1}\left(f_{v}\right): f_{v}$ 를 이용해 $Y_{v}$ 를 예측한다.
+    : 노드 피쳐 정보들만을 이용하여 노드라벨을 예측하는 모델
+    
+2. $\phi_{2}\left(f_{v}, z_{v}\right): f_{v}$ 와 $z_{v}$ 를 이용해 $Y_{v}$ 를 예측한다. 이때, $z_{v}$ 는 실제 레이블을 이용해 구성한다.
+    : 노드 피쳐 정보 + 이웃들의 라벨정보를 이용하여 노드 라벨을 예측하는 모델
+    
+Phase 2 : **Inference**
+테스트 데이터의 경우엔 일부 노드에만 레이블이 달려있다고 간주한다. 
+혹은 레이블이 아예 없을 수도 있다고 간주한다.
+이때 $\phi_{1}\left(f_{v}\right)$ 는 $f_{v}$ 가 변하지 않기 때문에 초기에 한번만 계산하여 라벨 $Y_{v}$ 를 예측한다. 
+이를 통해 모든 노드에 $Y_{v}$ 가 할당된다.
+모든 노드에 $Y_{v}$ 가 할당된 후 다음과 같은 과정을 수렴하거나 최대반복횟수에 도달할 때까지 반복한다.
+1. 새로운 $Y_{v}$ 에 맞추어 $z_{u}$ 를 업데이트한다. $\left(u \in N_{v}\right)$
+2. 새로운 $z_{u}$ 에 맞추어 $Y_{z}=\phi_{2}\left(f_{v}, z_{v}\right)$ 를 업데이트한다.
+다만, 해당 모델 또한 수렴을 보장하지 않기에, 최대 반복 횟수를 지정한다.
+
+</aside>
+
+### Example: Web Page Classification
+
+- Input: Graph of web pages
+- Node: Web page
+- Edge: Hyper-link between web pages
+    - Directed edge: a page points to another page
+- Node features: Webpage description
+    - For simplicity, we only consider two binary features
+- Task: Predict the topic of the webpage
+- Baseline: Train a classifier (e.g., linear classifier) to classify pages based on node attributes.
+
+
+
+- 입력: 웹페이지 그래프
+- 노드: 웹 페이지
+- 가장자리: 웹 페이지 간의 하이퍼링크 (Directed Edge)
+    - 방향 가장자리: 한 페이지가 다른 페이지를 가리키다
+- 노드 기능: 웹 페이지 설명 
+(TF-IDF 등의 토큰 정보, 여기선 2차원 벡터로 표현)
+    - 단순성을 위해 두 개의 이진 기능만 고려한다.
+- 작업: 웹 페이지의 주제 예측
+- 기준: 노드 속성을 기준으로 페이지를 분류하도록 분류기(예: 선형 분류기)를 훈련합니다.
+
+<p align="center">
+    <a href="https://imgur.com/7GfsTWy"><img src="https://i.imgur.com/7GfsTWy.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 Web Page의 주제를 예측하여 분류하기 위해서 아래의 데이터가 사용된다.
+
+- Input : 웹페이지 그래프
+- Node : 웹페이지
+- Edge : 웹페이지 간 하이퍼링크(Directed Edge)
+- Node Features : 웹페이지 정보(TF-IDF 등의 토큰 정보, 여기선 2차원 벡터로 표현)
+- Task : 각 웹페이지의 주제 예측
+
+</aside>
+
+
+
+- Each node maintains vectors $z_v$ of neighborhood labels:
+    - $I$ = Incoming neighbor label information vector.
+    - $O$ = Outgoing neighbor label information vector.
+        - $I_0$ = 1 if at least one of the incoming pages is labelled 0.
+            
+            Similar definitions for $I_0$, $O_0$, and $O_1$
+
+            
+
+- 각 노드는 이웃 레이블의 벡터 $z_v$를 유지한다.
+    - $I$ = 들어오는 인접 레이블 정보 벡터.
+    - $O$ = 나가는 인접 레이블 정보 벡터.
+        - $I_0$ = 1 (수신 페이지 중 하나 이상이 0으로 표시된 경우)
+            
+            $I_0$, $O_0$ 및 $O_1$에 대한 유사한 정의
+
+<p align="center">
+    <a href="https://imgur.com/VdovUfU"><img src="https://i.imgur.com/VdovUfU.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+
+<aside>
+
+💬 $f_{v}$ : 변수 벡터 (TF_IDF등)
+$I$ : incoming neighbor 레이블에 대한 기술 통계치 벡터([0인 이웃노드 유무, 1인 이웃노드 유무
+$O$ : outgoing neighbor 레이블에 대한 기술 통계치 벡터([0인 이웃노드 유무, 1인 이웃노드 유무
+$*z_v*$를 여러 방법들중 들어오고 나오는 엣지들의 라벨개수로 설정하기로 한다. 
+따라서 회색 노드에서는 1번인 초록 노드에서만 엣지가 들어오고 0번 클래스인 노드에서 들어오는것이 없으므로 $I=[0,1]$이 된다. 
+또한 0번, 1번 클래스 노드로 모두 나가므로 $O=[1,1]$으로 구성한다.
+
+</aside>
+
+### Iterative Classifier - Step 1
+
+- On training labels, train two classifiers:
+    - Node attribute vector only: $\phi_1(f_v)$
+    - Node attribute and link vectors $z_v$: $\phi_2(f_v,z_v)$
+
+1. Train classifiers
+2. Apply classifier to unlab. set
+3. Iterate
+4. Update relational features $z_v$
+5. Update label $Y_v$
+
+
+
+- 교육 라벨에서 두 가지 분류기를 교육합니다.
+    - 노드 속성 벡터만: $\phi_1(f_v)$
+    - 노드 속성 및 링크 벡터 $z_v$: $\phi_2(f_v,z_v)$
+
+1. 분류기 학습
+2. 레이블 해제 세트에 분류자 적용
+3. 반복
+4. 관계 기능 업데이트 $z_v$
+5. 레이블 업데이트 $Y_v$
+
+<p align="center">
+    <a href="https://imgur.com/zdTcimV"><img src="https://i.imgur.com/zdTcimV.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 $\phi_1(f_v)$에서는 피쳐 정보($f_v$)만을 사용하며, $\phi_2(f_v,z_v)$는 피쳐 정보($f_v$)와 이웃라벨 정보($I,O)$를 이용하여 학습한다.
+
+</aside>
+
+### Iterative Classifier - Step 2
+
+- **On the unlabeled set:**
+    - Use trained node feature ****vector classifier $**\phi_1**$ to set $**Y_v**$
+
+1. Train classifiers
+2. Apply classifier to unlab. set
+3. Iterate
+4. Update relational features $z_v$
+5. Update label $Y_v$
+
+
+
+- 라벨이 없는 세트에서:
+    - 훈련된 노드 특징 벡터 분류기 $\phi_1$를 사용하여 $Y_v$ 설정
+
+1. 분류기 학습
+2. 레이블 해제 세트에 분류자 적용
+3. 반복
+4. 관계 기능 업데이트 $z_v$
+5. 레이블 업데이트 $Y_v$
+
+<p align="center">
+    <a href="https://imgur.com/6i8y2uj"><img src="https://i.imgur.com/6i8y2uj.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 $\phi_1$이 부여한 라벨을 이용해 $z_v$를 업데이트한다.
+
+</aside>
+
+### Iterative Classifier - Step 3.1
+
+- Update $z_v$ for all nodes:
+
+1. Train classifiers
+2. Apply classifier to unlab. set
+3. Iterate
+4. Update relational features $z_v$
+5. Update label $Y_v$
+
+
+
+- 모든 노드에 대해 $z_v$ 업데이트:
+
+1. 분류기 학습
+2. 레이블 해제 세트에 분류자 적용
+3. 반복
+4. 관계 기능 업데이트 $z_v$
+5. 레이블 업데이트 $Y_v$
+
+<p align="center">
+    <a href="https://imgur.com/KQtZ5sC"><img src="https://i.imgur.com/KQtZ5sC.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 $\phi_2$가 업데이트 된 $z_v$와 $I$, $O$ 정보를 사용하여 라벨을 예측한다.
+
+</aside>
+
+### Iterative Classifier - Step 3.2
+
+- ****Re-classify all nodes with $\phi_2$:**
+
+1. Train classifiers
+2. Apply classifier to unlab. set
+3. Iterate
+4. Update relational features $z_v$
+5. Update label $Y_v$
+
+
+
+- $\phi_2$로 모든 노드를 다시 분류합니다.
+
+1. 분류기 학습
+2. 레이블 해제 세트에 분류자 적용
+3. 반복
+4. 관계 기능 업데이트 $z_v$
+5. 레이블 업데이트 $Y_v$
+
+<p align="center">
+    <a href="https://imgur.com/a4nOxOz"><img src="https://i.imgur.com/a4nOxOz.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 $\phi_2$에 의해 라벨이 변화했으므로, 다시 $z_v$를 업데이트한다.
+
+</aside>
+
+### Iterative Classifier - Iterate
+
+- Continue until convergence
+    - Update $z_v$ based on $Y_v$
+    - Update $Y_v$ = $\phi_2(f_v,z_v)$
+
+1. Train classifiers
+2. Apply classifier to unlab. set
+3. Iterate
+4. Update relational features $z_v$
+5. Update label $Y_v$
+
+
+
+- *정합될 때까지 계속합니다*
+    - $Y_v$를 기준으로 $z_v$ 업데이트
+    - 업데이트 $Y_v$*= $\phi_2(f_v,z_v)$*
+
+1. 분류기 학습
+2. 레이블 해제 세트에 분류자 적용
+3. 반복
+4. 관계 기능 업데이트 $z_v$
+5. 레이블 업데이트 $Y_v$
+
+<p align="center">
+    <a href="https://imgur.com/xSzFLfb"><img src="https://i.imgur.com/xSzFLfb.png" title="source: imgur.com" /></a>
+</p>
+
+<aside>
+
+💬 $z_v$가 업데이트 되었으므로 $\phi_2$가 레이블을 예측한다.
+
+</aside>
+
+### Iterative Classifier - Final Prediction
+
+- Stop iteration
+    - After convergence or when maximum iterations are reached
+
+
+
+- 반복 중지
+    - 수렴 후 또는 최대 반복 횟수에 도달한 경우
+
+<p align="center">
+    <a href="https://imgur.com/mmLmucZ"><img src="https://i.imgur.com/mmLmucZ.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 $\phi_2$를 통한 예측과 $z_v$에 대한 업데이트를 종료 고전에 도달할 때까지 반복한다.
+
+</aside>
+
+### Summary
+
+- We talked about 2 approaches to collective classification
+- Relational classification
+    - Iteratively update probabilities of node belonging to a label class based on its neighbors
+- Iterative classification
+    - Improve over collective classification to handle attribute/feature information
+    - Classify node 𝑣 based on its features as well as labels of neighbors
+
+
+
+- 집단 분류에 대한 2가지 접근법에 대해 이야기했습니다
+- 관계구분
+    - 인접 관계에 따라 레이블 클래스에 속하는 노드의 확률을 반복적으로 업데이트합니다.
+- 반복구분
+    - 특성/특징 정보를 처리하기 위해 집합 분류보다 개선
+    - 특징과 이웃의 label을 기준으로 노드 based 분류
+
+
+
+[CS224W: Machine Learning with Graphs 2021 Lecture 5.2 - Relational and Iterative Classification](https://www.youtube.com/watch?v=QUO-HQ44EDc&list=PLoROMvodv4rPLKxIpqhjhPgdQy7imNkDn&index=15)
+
+
+# 5.3 - Collective Classification : Belief Propagation
+
+## Collective Classification : Belief Propagation
+
+### Collective Classification Models
+
+- Relational classifiers
+- Iterative classification
+- Loopy belief propagation
+
+
+
+- 관계 분류자
+- 반복구분
+- 루피 신앙 전파
+
+
+
+<aside>
+
+💬 먼저 지금까지 배운 내용으로는 각 노드는 이웃 노드의 확률의 가중평균을 자신의 새로운 확률로 삼고 있다.
+혹은 각 노드는 이웃 노드의 레이블을 활용해 자신의 새로운 확률을 계산하게 된다. 
+즉, 이웃노드의 정보가 각각의 노드에서 사용되고 있는 것이다.
+이것을 각 노드는 이웃노드에게 Belief를 전달받는다고 할 수 있다. 
+즉 이웃 노드의 belief를 받아 자신의 belief를 생성한다. 
+다르게 말하면, 모델은 각 노드에 대해 데이터마다 belief를 가지고 있고, 이웃 노드의 belief를 이용해 각 노드의 belief를 업데이트하고 있다.
+그렇다면 왜 굳이 바로 이웃노드에서만 belief를 받아야 할까. 
+좀 더 먼 노드의 belief도 중요하게 작동하지 않을까? 
+왜냐하면 결국 이터레이션을 반복하여 이웃노드의 belief를 받게 된다면, 해당 belief는 이웃노드의 이웃노드의 belief가 섞여있는 상태기 때문에, 이터레이션을 반복한다는 것은 자신의 이웃노드의 이웃노드의 이웃노드의 .... belief를 받고 있는 것이기 때문이다. 
+이를 역으로 생각하여 belief가 그래프에 직접 흐르도록 알고리즘을 구성한 것이 loopy belief propagation이 된다.
+
+</aside>
+
+### Loopy Belief Propagation
+
+- Belief Propagation is a dynamic programming approach to answering probability queries in a graph (e.g. probability of node $v$ belonging to class 1 )
+- Iterative process in which neighbor nodes "talk" to each other, passing messages
+    
+    <aside>
+
+    📌 "I (node v) believe you (node u) belong to class 1 with likelihood ..."
+
+    </aside>
+    
+- When consensus is reached, calculate final belief
+
+
+
+- 믿음 전파는 그래프에서 확률 쿼리에 응답하는 동적 프로그래밍 접근법이다(예: 클래스 1에 속하는 노드 $v$의 확률).
+- 인접 노드가 메시지를 전달하면서 서로 "대화"하는 반복 프로세스
+    
+    <aside>
+
+    📌 "나(노드 v)는 (노드 u)가 클래스 1에 속한다고 믿고 있습니다.”
+    
+    </aside>
+    
+- 합의가 이루어지면 최종 믿음을 계산합니다.
+
+
+
+<aside>
+
+💬 Belief Propagation 확률 쿼리에 응답하기 위한 동적 프로그래밍 접근법이다.
+또한 반복적으로 이웃노드와 'talk'하면서 메시지를 전달하는 방법이다. 
+따라서 주된 아이디어는 각 노드는 메시지를 이웃으로부터 얻는다. 
+그리고 업데이트하고 앞으로 전달한다.
+
+</aside>
+
+### Message Passing: Basics
+
+- Task: Count the number of nodes in a graph*
+- Condition: Each node can only interact (pass message) with its neighbors
+- Example: path graph
+
+
+
+- 과제: 그래프의 노드 수 계산*
+- 조건: 각 노드는 인접 노드와만 상호 작용(메시지 전달)할 수 있습니다.
+- 예: 경로 그래프
+
+<p align="center">
+    <a href="https://imgur.com/XHrIBtI"><img src="https://i.imgur.com/XHrIBtI.png" title="source: imgur.com" /></a>
+</p>
+
+Potential issues when the graph contains cycles.
+
+We'll get back to it later!
+
+
+
+그래프에 주기가 포함되어 있을 때 발생할 수 있는 문제.
+나중에 다시 얘기하자!
+
+
+
+<aside>
+
+💬 위와 같이 가장 단순한 그래프의 형태를 생각해보자.
+우리가 원하는 것은 그래프의 노드 수를 계산하고자 한다. 
+이때 belief는 각 이터레이션마다 이웃 노드로만 전달될 수 있다.
+
+</aside>
+
+### Message Passing: Algorithm
+
+- Task: Count the number of nodes in a graph
+- Algorithm:
+    - Define an ordering of nodes (that results in a path)
+    - Edge directions are according to order of nodes
+        - Edge direction defines the order of message passing
+    - For node $i$ from 1 to 6
+        - Compute the message from node $i$ to $i+1$ (number of nodes counted so far)
+        - Pass the message from node $i$ to $i+1$
+
+
+
+- 과제: 그래프의 노드 수 계산
+- 알고리즘:
+    - 노드 순서 정의(경로 생성)
+    - 에지 방향은 노드 순서에 따릅니다.
+        - 에지 방향은 메시지 전달 순서를 정의합니다.
+    - 노드 $i$의 경우 1 ~ 6까지
+        - 노드 $i$에서 $i+1$로 메시지 계산 (지금까지 카운트된 노드 수)
+        - 노드 $i$에서 $i+1$로 메시지 전달
+
+<p align="center">
+    <a href="https://imgur.com/XHrIBtI"><img src="https://i.imgur.com/XHrIBtI.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 알고리즘은 다음과 같을 것이다.
+
+1. 노드의 순서를 정한다.
+2. 1에서 정한 순서에 따라 엣지의 방향을 정한다.
+3. $i$번째 노드에 대해 다음을 시행한다.
+    $i-1$ 노드에서 belief(이전까지 지나온 노드의 수)를 받는다.
+    belief에 $1$(자신에 대한 count)을 더한다.
+    $i+1$ 노드로 belief를 전달한다.
+    
+</aside>
+
+
+### Message Passing: Basics
+
+Task: Count the number of nodes in a graph Condition: Each node can only interact (pass message) with its neighbors
+Solution: Each node listens to the message from its neighbor, updates it, and passes it forward
+$m$ : the message
+
+
+
+작업: 그래프의 노드 수 계산 조건: 각 노드는 인접 노드와만 상호 작용(메시지 전달)할 수 있습니다.
+솔루션: 각 노드는 인접 노드로부터 메시지를 수신하고 업데이트한 후 전달
+$m$ : 메시지
+
+<p align="center">
+    <a href="https://imgur.com/YdRCNzd"><img src="https://i.imgur.com/YdRCNzd.png" title="source: imgur.com" /></a>
+</p>
+
+
+
+<aside>
+
+💬 그래프의 노드의 수를 세는 방법을 구하기 위해서 위에서 본 알고리즘을 따라 먼저 노드의 순서와 그에 따른 방향을 정해준다.
+그리고 난뒤로 이전 노드로 부터 message를 전달받고(listen) 현재노드에서 메시지를 업데이트하고 앞의 노드로 전달해준다.
+
+</aside>
+
+### Generalizing to a Tree
+
+- We can perform message passing not only on a path graph, but also on a tree-structured graph
+- Define order of message passing from leaves to root
+
+
+
+- 경로 그래프뿐만 아니라 트리 구조 그래프에서도 메시지 전달을 수행할 수 있습니다.
+- 리프에서 루트로 전달되는 메시지 순서 정의
+
+<p align="center">
+    <a href="https://imgur.com/hT3fUTi"><img src="https://i.imgur.com/hT3fUTi.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+
+
+<aside>
+
+💬 같은 알고리즘을 위와 같은 트리 구조에 적용한다.
+트리는 parent와 child로 구성되어 있기 때문에, 전체 노드의 수를 세기 위해서 child에서 parent 방향으로 belief가 흐르면 될 것이다.
+
+</aside>
+
+### Message passing in a tree
+
+Update beliefs in tree structure
+
+트리 구조의 신뢰 업데이트
+
+<p align="center">
+    <a href="https://imgur.com/d5PUBIT"><img src="https://i.imgur.com/d5PUBIT.png" title="source: imgur.com" width="500px"/></a>
+    <a href="https://imgur.com/Bw3I4Ch"><img src="https://i.imgur.com/Bw3I4Ch.png" title="source: imgur.com" width="450px"/></a>
+</p>
+
+
+
+<aside>
+
+💬 이때 왼쪽 그림과 같이 parent 노드는 자신의 child 노드의 belief를 받아 종합하는 일종의 계산을 수행한 수 자신의 parent 노드로 belief를 넘겨주게 된다.
+이를 통해 최종적으로 root 노드에서 전체 노드의 수를 구할 수 있을 것이다.
+하지만 실제로 count를 belief로 간주하고 이웃 노드에 전달하지 않을 것이다. 
+실제로 알고리즘이 어떻게 되어 있는지 살펴보자.
+
+</aside>
+
+### Loopy BP Algorithm
+
+What message will $i$ send to $j$ ?
+- It depends on what $i$ hears from its neighbors
+- Each neighbor passes a message to $i$ its beliefs of the state of $i$
+
+
+
+$i$가 $j$에 보낼 메시지는 무엇입니까?
+- $i$가 이웃으로부터 무엇을 듣느냐에 따라 달라진다.
+- 각 이웃은 $i$ 상태에 대한 믿음을 $i$에 전달한다.
+
+
+
+<aside>
+
+📌 I (node $i$ ) believe that you (node $j$ ) belong to class $Y_{j}$ with probability $\cdots$
+
+</aside>
+
+<aside>
+
+📌 I(노드 $i$)는 당신(노드 $j$)이 확률로 클래스 $Y_{j}$에 속한다고 믿는다$\cdots$
+
+</aside>
+
+<p align="center">
+    <a href="https://imgur.com/qPnz3bc"><img src="https://i.imgur.com/qPnz3bc.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+<aside>
+
+💬 일반적으로는 여러 노드의 정보를 $i$노드로 전달하고(hear) $i$노드에서 $j$노드로 전달한다.
+
+</aside>
+
+### Notation
+
+- Label-label potential matrix $\psi$ : Dependency between a node and its neighbor.
+    $\boldsymbol{\psi}\left(Y_{i}, Y_{j}\right)$ is proportional to the probability of a node $j$ being in class $Y_{j}$ given that it has neighbor $i$ in class $Y_{i}$.
+- Prior belief $\phi: \phi\left(Y_{i}\right)$ is proportional to the probability of node $i$ being in class $Y_{i}$.
+- $m_{i \rightarrow j}\left(Y_{j}\right)$ is $i^{\prime}$ s message / estimate of $j$ being in class $Y_{j}$.
+- $\mathcal{L}$ is the set of all classes/labels
+
+
+
+- 레이블 레이블 잠재적 매트릭스 $\psi$ : 노드와 인접 노드 간의 종속성.
+    $\boldsymbol{\psi}\left(Y_{i}, Y_{j}\right)$는 노드 $j$가 클래스 $Y_{j}$에 있을 확률에 비례한다.
+- $\phi: \phi\left(Y_{i}\right)$는 노드 $i$가 클래스 $Y_{i}$에 포함될 확률에 비례한다.
+- $m_{i \rightarrow j}\left(Y_{j}\right)$는 클래스 $Y_{j}$에 속하는 $j$의 $i^{\prime}$ 메시지/추정이다.
+- $\mathcal{L}$ 는 모든 클래스/라벨의 집합입니다.
+
+
+
+<aside>
+
+💬 **Notation**
+
+- $\psi$ (Label-Label Potential Matrix) : $\psi$ 는 각 노드가 이웃노드의 클래스에 대한 영향력(비례)을 행렬로 표현한 것이다.
+    - 예를 들어 $\psi\left(Y_{i}, Y_{j}\right)$ 는 이웃 노드 i의 레이블이 $Y_{i}$ 일 때, 노드 $\mathrm{j}$ 가 $Y_{j}$ 레이블에 속할 확률의 비중이다.
+    - 만약 $i$와 $j$가 Homophily가 존재한다면(같은 class를 가진다면) 대각원소들의 크기는 높을것이다.
+    - 또한 이 행렬을 얻기위해서는 학습이 필요하다.
+- $\phi$ (Prior Belief) : 노드 $i$가 $Y_{i}$ 에 속할 확률에 비례한다.
+- $m_{i \rightarrow j}\left(Y_{j}\right)$ : $i$의 메세지가 $j$로 전달되는 것을 의미하는데, $i$가 이웃 노드로 부터 받은 belief와 자신의 정보를 종합해 $j$의 레이블을 believe하는 것을 의미한다.
+    - $j$의 노드를 예측할 수 있도록 $i$에서 $j$로 전달하는 메시지이다.
+- $L:$ 모든 레이블(클래스)을 포함하는 집합
+- $b_{i}\left(Y_{i}\right)$ : 노드 i의 클래스가 $Y_{i}$ 일 belief
+
+</aside>
+
+### Loopy BP Algorithm
+
+1. Initialize all messages to 1
+2. Repeat for each node:
+
+
+
+1. 모든 메시지를 1로 초기화
+2. 각 노드에 대해 반복합니다.
+
+<p align="center">
+    <a href="https://imgur.com/qLrdN7Z"><img src="https://i.imgur.com/qLrdN7Z.png" title="source: imgur.com" width="250px"/></a>
+</p>
+
+<p align="center">
+    <a href="https://imgur.com/6GBZZk4"><img src="https://i.imgur.com/6GBZZk4.png" title="source: imgur.com" width="450px"/></a>
+</p>
+
+After convergence: $b_{i}\left(Y_{i}\right)=$ node $i$ 's belief of being in class $Y_{i}$
+
+수렴 후: $b_{i}\left(Y_{i}\right)=$ 노드 $i$의 클래스 $Y_{i}$에 대한 믿음
+
+<p align="center">
+    <a href="https://imgur.com/OQmM6Aa"><img src="https://i.imgur.com/OQmM6Aa.png" title="source: imgur.com" width="450px"/></a>
+</p>
+
+
+
+<aside> 
+
+1. 가장 처음에는 모든 노드의 메세지를 1로 초기화한다.
+2. 이후 가운데 이미지와 같이 모든 노드에 대해 다음 노드로 메세지를 전달하는 과정을 반복한다.
+
+이때 가운데 이미지의 수식을 설명해보자면, 가장 앞의 분홍색 부분은 현재 노드 $i$의 모든 레이블의 가능성에 대해 반복하여 더한다는 의미이다.
+녹색 부분은 label-label potential로서, $i$노드의 각 레이블마다 $j$노드가 $Y_{j}$ 레이블을 가질 확률을 계산하게 된다. 
+적색 부분은 Prior로서 $i$노드가 $Y_{i}$ 레이블을 가질 확률을 계산하게 된다. 
+청색 부분은 $i$ 노드가 메세지를 넘겨받는 이웃 노드에서 $i$ 노드가 $Y_{i}$ 레이블일 belief를 넘겨 받는 부분이다.
+만약 위의 과정이 충분히 반복되어 수렴한다면 세번째 이미지에 해당하는 실제 확률 $[b_{i}\left(Y_{i}\right)]$이 계산되게 된다.
+1. 즉, Prior 확률에 belief를 모두 곱하여 최종적인 belief ($[b_{i}\left(Y_{i}\right)]$) 를 결정한다.
+💡 Q: 수렴 하는 것이 무엇인지? 무엇이 수렴하는 것인지 상황에 대한 질문
+
+</aside>
+
+### Example: Loopy Belief Propagation
+
+- Now we consider a graph with cycles
+- There is no longer an ordering of nodes
+- We apply the same algorithm as in previous slides:
+    - Start from arbitrary nodes
+    - Follow the edges to update the neighboring nodes
+
+What if our graph has cycles?
+Messages from different subgraphs are no longer independent!
+But we can still run BP, but it will pass messages in loops.
+
+
+
+- 이제 주기가 있는 그래프를 살펴봅시다.
+- 더 이상 노드 순서가 없습니다.
+- 이전 슬라이드와 동일한 알고리즘을 적용합니다.
+    - 임의 노드에서 시작
+    - 가장자리를 따라 인접 노드를 업데이트합니다.
+
+만약 우리 그래프에 주기가 있다면?
+다른 하위 그래프의 메시지는 더 이상 독립적이지 않습니다!
+하지만 BP는 여전히 실행할 수 있지만 메시지를 루프 형태로 전달합니다.
+
+<p align="center">
+    <a href="https://imgur.com/kZh0Yei"><img src="https://i.imgur.com/kZh0Yei.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+
+
+<aside>
+
+💬 지금까지 이야기한 그래프들은 순환하는 구조를 가지고 있지 않아 메세지를 전달할 순서를 정하는데 문제가 없었다.
+하지만 순환하는 구조를 가지는 그래프의 경우에는 단순하게 노드의 순서를 정해서 메세지를 전달하도록 만들 수 없다 
+그에 대해 자세히 살펴보자.
+만약 위와 같은 그래프가 있고, 위와 같은 순서로 메세지를 주고 받는다고 생각해보자. 
+$u$ 노드는 $k$에게 메세지를 받는 것처럼 보이지만, 실제로는 자기 자신의 메세지마저 받고 있는 상황이다. 
+즉, 더 이상 모든 노드가 독립적이지 않고, 의존성이 생긴다. 
+순서가 반대로 트리와 같이 $j$가 $i, k$로 메세지를 전달하고, $i, k$가 $u$로 메세지를 전달한다면, $j$의 메세지는 $u$에게 중복되어 두 번 전달되는 문제가 생긴다.
+이렇게 되면 알고리즘이 크게 문제가 생기는 것 같지만, 실제 적용해보니 그렇지 않다고 한다. 
+실제 그래프들은 무척 크고, 거기에 순환하는 cycle 구조는 그렇게 큰 부분을 차지하지 않는데 반면, 전체 구조는 매우 복잡하기 때문에 Loopy BP 알고리즘이 잘 작동한다고 한다.
+
+</aside>
+
+### What Can Go Wrong?
+
+- Beliefs may not converge
+- Message $m_{u \rightarrow i}\left(Y_{i}\right)$ is based on initial belief of $i$, not a separate evidence for $i$
+- The initial belief of $i$ (which could be incorrect) is reinforced by the cycle
+
+$$
+i \rightarrow j \rightarrow k \rightarrow u \rightarrow i
+$$
+
+- However, in practice, Loopy BP is still a good heuristic for complex graphs which contain many branches.
+
+
+
+- 신념이 수렴되지 않을 수 있다.
+- 메시지 $m_{u \rightarrow i}\left(Y_{i}\right)$는 $i$에 대한 별도의 증거가 아니라 $i$의 초기 믿음에 기초한다.
+- (잘못될 수 있음) $i$의 초기 신념은 주기에 의해 강화된다.
+
+$$
+i \rightarrow j \rightarrow k \rightarrow u \rightarrow i
+$$
+
+- 그러나 실제로 Loopy BP는 많은 분기를 포함하는 복잡한 그래프에 여전히 좋은 휴리스틱이다.
+
+<p align="center">
+    <a href="https://imgur.com/kZh0Yei"><img src="https://i.imgur.com/kZh0Yei.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+
+
+- Messages loop around and around: $2,4,8,16,32, \ldots$ More and more convinced that these variables are $T$ !
+- BP incorrectly treats this message as separate evidence that the variable is $\mathrm{T}$!.
+- Multiplies these two messages as if they were independent.
+    - But they don't actually come from independent parts of the graph.
+    - One influenced the other (via a cycle).
+
+
+
+- 메시지는 돌고 돈다: $2,4,8,16,32,\ldots$ 이러한 변수가 $T$임을 점점 더 확신하게 된다!
+- BP는 이 메시지를 변수가 $\mathrm{T}$라는 별도의 증거로 잘못 취급한다.
+- 이 두 메시지를 독립한 것처럼 곱합니다.
+    - 하지만 그것들은 사실 그래프의 독립적인 부분에서 나온 것이 아닙니다.
+    - 한 사람이 다른 사람에게 영향을 주었다.
+
+<p align="center">
+    <a href="https://imgur.com/YjQVLbj"><img src="https://i.imgur.com/YjQVLbj.png" title="source: imgur.com" width="300px"/></a>
+</p>
+
+This is an extreme example. 
+Often in practice, the cyclic influences are weak. 
+(As cycles are long or include at least one weak correlation.)
+
+
+
+이것은 극단적인 예입니다.
+실제로, 주기적인 영향은 약하다. 
+(주기가 길거나 하나 이상의 약한 상관 관계를 포함하기 때문에)
+
+### Advantages of Belief Propagation
+
+- Advantages:
+    - Easy to program & parallelize
+    - General: can apply to any graph model with any form of potentials
+        - Potential can be higher order: e.g. $\boldsymbol{\psi}\left(Y_{i}, Y_{j}, Y_{k}, Y_{v} \ldots\right)$
+- Challenges:
+    - Convergence is not guaranteed (when to stop), especially if many closed loops
+- Potential functions (parameters)
+    - Require training to estimate
+
+
+
+- 장점:
+    - 프로그래밍 및 병렬화가 용이함
+    - 일반: 모든 형태의 잠재력이 있는 그래프 모델에 적용할 수 있습니다.
+        - 잠재력은 고차일 수 있다. 예를 들어 $\boldsymbol{\psi}\left(Y_{i}, Y_{j}, Y_{k}, Y_{v} \ldots\right)$
+- 과제:
+    - 특히 닫힌 루프가 많은 경우 수렴이 보장되지 않습니다(정지 시기).
+- 잠재적 함수(모수)
+    - 평가하려면 교육 필요
+
+
+<aside>
+
+💬 **Advantages:**
+
+1. 코딩이 쉽고, 병렬화가 가능하다.
+2. 어떠한 그래프 모델이더라도, potential matrix를 구성할 수 있으므로 범용적이다.
+
+**Challenges:**
+
+1. 수렴이 보장되지 않아 언제 멈춰야 할지 알 수 없으며, 특히 순환구조일 경우 수렴이 보장되지 않아 반복횟수를 지정해주어야 한다.
+2. cycle 구조로 인해 종종 적은 이터만 돌리기도 한다.
+
+</aside>
+
+### Summary
+
+- We learned how to leverage correlation in graphs to make prediction on nodes
+- Key techniques:
+    - Relational classification
+    - Iterative classification
+    - Loopy belief propagation
+
+
+
+- 우리는 그래프의 상관 관계를 활용하여 노드에 대한 예측을 하는 방법을 배웠다.
+- 주요 기술:
+    - 관계구분
+    - 반복구분
+    - 루피 신앙 전파
+
+
+
+[CS224W: Machine Learning with Graphs 2021 Lecture 5.3 - Collective Classification](https://www.youtube.com/watch?v=kh3I_UTtUOo&list=PLoROMvodv4rPLKxIpqhjhPgdQy7imNkDn&index=16)

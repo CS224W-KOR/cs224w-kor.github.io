@@ -1,8 +1,7 @@
 ---
-draft: true
 toc: true
 title: "Lecture 1"
-description: Introduction to Graph
+description: Introduction - Machine Learning for Graphs
 author: "Eunsung Shin"
 date: "2022-07-06"
 categories: [LEC01]
@@ -155,7 +154,7 @@ example1) drug discovery
 
 ⇒ 노드와 에지 정보를 통해 그래프(분자) 예측
 
-4-2 ) **Graph-level generation**
+4-2) **Graph-level generation**
 
 example1) drug generation
 

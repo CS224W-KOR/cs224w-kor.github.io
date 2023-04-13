@@ -1,0 +1,8 @@
+---
+toc: true
+title: "Lecture 15"
+description: Deep Generative Models for Graphs
+author: "Eunsung Shin"
+date: "2022-08-30"
+categories: [LEC15]
+---

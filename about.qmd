@@ -15,7 +15,7 @@ about:
       href: http://web.stanford.edu/class/cs224w/index.html#schedule
     - icon: house
       text: CS224w Stanford / Fall 2021 Hompage
-      href: http://web.stanford.edu/class/cs224w/index.html
+      href: http://snap.stanford.edu/class/cs224w-2021/index.html#schedule
 
 ---
 
@@ -30,3 +30,4 @@ CS224w를 공부하며 정리한 글들을 모아둔 블로그입니다.
 - [Jung Yeon Lee](https://github.com/curieuxjy)
 - [mhkim9714](https://github.com/mhkim9714)
 - [sunLeee](https://github.com/sunLeee)
+- [YoojinKim](https://github.com/Rrojin11)

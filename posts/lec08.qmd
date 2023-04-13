@@ -1,0 +1,9 @@
+---
+toc: true
+title: "Lecture 8"
+description: Applications of Graph Neural Networks
+author: "Eunsung Shin"
+date: "2022-08-04"
+categories: [LEC08]
+---
+

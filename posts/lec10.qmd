@@ -1,0 +1,10 @@
+---
+toc: true
+title: "Lecture 10"
+description: Knowledge Graph Embeddings
+author: "YoojinKim"
+date: "2022-08-11"
+categories: [LEC10]
+---
+
+

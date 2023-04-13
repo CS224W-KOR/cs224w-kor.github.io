@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.313">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="YoojinKim">
+<meta name="dcterms.date" content="2022-07-13">
+<meta name="description" content="Node Embeddings">
+
+<title>CS224W-KOR Blog - Lecture 3</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">CS224W-KOR Blog</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">Study Group</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/CS224W-KOR"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Lecture 3</h1>
+                  <div>
+        <div class="description">
+          Node Embeddings
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">LEC03</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>YoojinKim </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 13, 2022</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#node-embedding" id="toc-node-embedding" class="nav-link active" data-scroll-target="#node-embedding">3.1 Node Embedding</a>
+  <ul class="collapse">
+  <li><a href="#graph-representation-learning" id="toc-graph-representation-learning" class="nav-link" data-scroll-target="#graph-representation-learning">Graph Representation Learning</a></li>
+  <li><a href="#why-embedding" id="toc-why-embedding" class="nav-link" data-scroll-target="#why-embedding">Why Embedding?</a></li>
+  <li><a href="#example-node-embedding" id="toc-example-node-embedding" class="nav-link" data-scroll-target="#example-node-embedding">Example Node Embedding</a></li>
+  <li><a href="#node-embeddings-encoder-and-decoder" id="toc-node-embeddings-encoder-and-decoder" class="nav-link" data-scroll-target="#node-embeddings-encoder-and-decoder">Node Embeddings: Encoder and Decoder</a></li>
+  <li><a href="#learning-node-embeddings" id="toc-learning-node-embeddings" class="nav-link" data-scroll-target="#learning-node-embeddings">Learning Node Embeddings</a></li>
+  <li><a href="#shallow-encoding" id="toc-shallow-encoding" class="nav-link" data-scroll-target="#shallow-encoding">Shallow Encoding</a></li>
+  <li><a href="#note-on-node-embeddings" id="toc-note-on-node-embeddings" class="nav-link" data-scroll-target="#note-on-node-embeddings">Note on Node Embeddings</a></li>
+  </ul></li>
+  <li><a href="#random-walk-approaches-for-node-embeddings" id="toc-random-walk-approaches-for-node-embeddings" class="nav-link" data-scroll-target="#random-walk-approaches-for-node-embeddings">3.2 Random Walk Approaches for Node embeddings</a>
+  <ul class="collapse">
+  <li><a href="#why-random-walks" id="toc-why-random-walks" class="nav-link" data-scroll-target="#why-random-walks">Why Random Walks?</a></li>
+  <li><a href="#unsupervised-feature-learning" id="toc-unsupervised-feature-learning" class="nav-link" data-scroll-target="#unsupervised-feature-learning">Unsupervised Feature Learning</a></li>
+  <li><a href="#feature-learning-as-optimization" id="toc-feature-learning-as-optimization" class="nav-link" data-scroll-target="#feature-learning-as-optimization">Feature Learning as Optimization</a></li>
+  <li><a href="#random-walk-optimization" id="toc-random-walk-optimization" class="nav-link" data-scroll-target="#random-walk-optimization">Random Walk Optimization</a></li>
+  <li><a href="#how-should-we-randomly-walk" id="toc-how-should-we-randomly-walk" class="nav-link" data-scroll-target="#how-should-we-randomly-walk">How should we randomly walk?</a></li>
+  <li><a href="#node2vec-biased-walks" id="toc-node2vec-biased-walks" class="nav-link" data-scroll-target="#node2vec-biased-walks">node2vec : Biased Walks</a></li>
+  <li><a href="#interpolating-bfs-and-dfs" id="toc-interpolating-bfs-and-dfs" class="nav-link" data-scroll-target="#interpolating-bfs-and-dfs">Interpolating BFS and DFS</a></li>
+  <li><a href="#biased-2nd-order-random-walks" id="toc-biased-2nd-order-random-walks" class="nav-link" data-scroll-target="#biased-2nd-order-random-walks">Biased 2nd-order random walks</a></li>
+  <li><a href="#node2vec-algorithm" id="toc-node2vec-algorithm" class="nav-link" data-scroll-target="#node2vec-algorithm">node2vec algorithm</a></li>
+  </ul></li>
+  <li><a href="#embedding-entire-graphs" id="toc-embedding-entire-graphs" class="nav-link" data-scroll-target="#embedding-entire-graphs">3.3 Embedding Entire Graphs</a>
+  <ul class="collapse">
+  <li><a href="#simple-use-of-anonymous-walks" id="toc-simple-use-of-anonymous-walks" class="nav-link" data-scroll-target="#simple-use-of-anonymous-walks">Simple Use of Anonymous Walks</a></li>
+  <li><a href="#sampling-anonymous-walks" id="toc-sampling-anonymous-walks" class="nav-link" data-scroll-target="#sampling-anonymous-walks">Sampling Anonymous Walks</a></li>
+  <li><a href="#new-idea-learn-walk-embeddings" id="toc-new-idea-learn-walk-embeddings" class="nav-link" data-scroll-target="#new-idea-learn-walk-embeddings">New idea : Learn Walk Embeddings</a></li>
+  <li><a href="#summary-of-graph-embedding" id="toc-summary-of-graph-embedding" class="nav-link" data-scroll-target="#summary-of-graph-embedding">Summary of Graph embedding</a></li>
+  <li><a href="#how-to-use-embeddings" id="toc-how-to-use-embeddings" class="nav-link" data-scroll-target="#how-to-use-embeddings">How to Use Embeddings</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="node-embedding" class="level2">
+<h2 class="anchored" data-anchor-id="node-embedding">3.1 Node Embedding</h2>
+<section id="graph-representation-learning" class="level3">
+<h3 class="anchored" data-anchor-id="graph-representation-learning">Graph Representation Learning</h3>
+<p><strong>representation learning 목적</strong>은 feature engineering을 통해 직접 node의 feature를 지정하는 대신, <strong>feature를 자동으로 학습</strong>하는 것입니다.</p>
+<p>그림에서와 같이, representation learning을 거쳐 node u를 d차원 vector로 표현하게 됩니다. 이때, feature를 표현하는 vector를 <strong>‘feature representation’ 혹은 ‘embedding’</strong>이라고 부릅니다. 이 vector는 node의 특징을 잘 담아내야 하며, 그래프의 전반적인 구조의 의미도 포함해야 합니다.</p>
+<p><img src="../images/lec03/Untitled.png" class="img-fluid"></p>
+</section>
+<section id="why-embedding" class="level3">
+<h3 class="anchored" data-anchor-id="why-embedding">Why Embedding?</h3>
+<p><strong>embedding space내에 표현된 node들은 유사성(similarity) 가질수록 비슷한 embedding을 가진다</strong>는 것이 핵심입니다. 이렇게 표현된 node들은 후속 작업인 예측 task (node classification, link prediction, graph classification 등)에 효과적으로 활용됩니다.</p>
+</section>
+<section id="example-node-embedding" class="level3">
+<h3 class="anchored" data-anchor-id="example-node-embedding">Example Node Embedding</h3>
+<p>DeepWalk 의 연구로, Zachary’s Karate Club network를 2차원 vector의 feature로 표현했습니다. <strong>같은 색상을 가진 node끼리 비슷한 vector 값을 갖는 것</strong>을 확인할 수 있으며, 이를 통해 embedding 작업이 꽤 성공적으로 이루어졌다고 판단할 수 있습니다.</p>
+<p><img src="../images/lec03/Untitled 1.png" class="img-fluid"></p>
+</section>
+<section id="node-embeddings-encoder-and-decoder" class="level3">
+<h3 class="anchored" data-anchor-id="node-embeddings-encoder-and-decoder">Node Embeddings: Encoder and Decoder</h3>
+<p>우선 간단한 그래프에서 시작해봅시다!</p>
+<p>feature는 없고, 연결 관계만(adjacency matrix)만 존재하는 undirected 그래프가 있다고 합시다. 이때 embedding 목표는 <strong>embedding후의 embedding space에서의 각 node끼리의 유사성(similarity)과 그래프상에서의 유사성</strong>이 비슷해지는 것입니다. <strong>embedding space에서의 유사성을 측정할 때는 vector간의 dot product 연산을 수행</strong>하는 것이 일반적입니다. <strong>dot product</strong>은 <span class="math inline">\(a \cdot b = |a||b|cos\theta\)</span> 이므로, <strong>두 vector간의 각도가 작을수록(=가까움, 비슷함), 큰 값</strong>을 갖게 됩니다. 자 이제, embedding space에서의 유사성은 측정할 수 있게 되었으므로, <strong>그래프상에서의 유사성을 측정할 수 있는 similarity function을 정의</strong>해야 합니다.</p>
+<blockquote class="blockquote">
+<p><strong>Goal :</strong> <span class="math inline">\(\red {similarity(u,v)} \;\approx\; \green{z^T_v z_u}\)</span></p>
+</blockquote>
+<p><img src="../images/lec03/Untitled 2.png" class="img-fluid"></p>
+</section>
+<section id="learning-node-embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="learning-node-embeddings">Learning Node Embeddings</h3>
+<p><strong>1) Encoder를 통해 node를 embedding값으로 변환</strong>합니다. Encoder : <span class="math inline">\(ENC(v) = z_v\)</span>, <span class="math inline">\(z_v : d\)</span>-dimensional embedding 이때, embedding 차원으로 보통 64~1000을 채택합니다.</p>
+<p><strong>2)</strong> <strong>그래프 상에서의 노드 간 유사성을 측정할 similarity function을 정의</strong>합니다.</p>
+<p><strong>3) Decoder는 embedding값들 간의 유사성을 측정</strong>합니다. → similarity score Decoder : <span class="math inline">\(DEC(z^T_vz_u)\)</span></p>
+<p><strong>4) <span class="math inline">\(\red {similarity(u,v)} \;\approx\; \green{z^T_v z_u}\)</span>가 될 수 있도록, Encoder의 parameter들을 최적화</strong> 합니다.</p>
+</section>
+<section id="shallow-encoding" class="level3">
+<h3 class="anchored" data-anchor-id="shallow-encoding">Shallow Encoding</h3>
+<p>가장 간단한 encoder는 단순한 <strong>embedding-lookup(→조회)</strong>입니다.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(ENC(v) = z_v= Z \cdot v\)</span> , <span class="math inline">\(Z\in\R^{d*|v|}\)</span>, <span class="math inline">\(v\in I^{|v|}\)</span></p>
+</blockquote>
+<p>여기서 <span class="math inline">\(**Z\)</span>는 모든 node의 embedding을 포함하는 matrix로 각 column이 하나의 node embedding을 의미<strong>합니다. <span class="math inline">\(v\)</span>는 indicator vector로, 현재 표현할 node만 1이고 나머지는 0인 vector입니다. </strong>이때의 목표는 matrix <span class="math inline">\(Z\)</span>를 최적화<strong>하는 것입니다. 다음 방법을 이용한 대표적인 알고리즘은 </strong>DeepWalk와 node2vec**이 있습니다.</p>
+<p><img src="../images/lec03/Untitled 3.png" class="img-fluid"></p>
+<p>하지만 이때의 <strong>문제점은 최적화해야 할 embedding matrix <span class="math inline">\(Z\)</span>의 parameter수가 매우 커질 수 있다는 점</strong>입니다. 예를 들어, 10억 개 node로 구성된 그래프에 대해서 최적화 해야 할 parameter는 (10억 * embedding dimension)개 입니다. 따라서 해당 방법은 단순 lookup 으로 매우 간단할 수 있지만, 확장 가능성이 작습니다.(= low scalability)</p>
+<p>(vs.&nbsp;deep encoder(GNNs)는 6장에서부터 다룰 예정입니다🙂)</p>
+</section>
+<section id="note-on-node-embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="note-on-node-embeddings">Note on Node Embeddings</h3>
+<p>node embedding을 찾는 것은 unsupervised/self-supervised 방식으로 구분될 수 있습니다. 위에서 언급했듯이 <strong>node label, node feature 등을 이용하지 않고, graph network의 구조를 보존한 채 node embedding을 찾기 때문</strong>입니다. 따라서, 해당 방법은 <strong>task independent로, 어떤 task든 적용 가능</strong>합니다.</p>
+<hr>
+</section>
+</section>
+<section id="random-walk-approaches-for-node-embeddings" class="level2">
+<h2 class="anchored" data-anchor-id="random-walk-approaches-for-node-embeddings">3.2 Random Walk Approaches for Node embeddings</h2>
+<p>본격적인 node embedding 방법 소개에 앞서, <strong>용어</strong>부터 살펴봅시다!</p>
+<ul>
+<li><strong>Vector <span class="math inline">\(z_u\)</span> :</strong> node u의 <strong>embedding → 우리가 찾고자 하는 것.</strong></li>
+<li><strong>Probability <span class="math inline">\(P(v|z_u)\)</span> :</strong> node u에서 시작해서 random walk로 node v에 방문할 확률</li>
+<li><strong>Non-linear function :</strong></li>
+</ul>
+<ol type="1">
+<li>softmax</li>
+</ol>
+<p>입력받은 값을 출력으로 0~1 사이의 값으로 모두 정규화하며 출력값들의 총합은 항상 1이 되는 특성을 가진 함수로, 분류하고 싶은 class 수만큼 출력으로 구성합니다. 가장 큰 출력값을 부여받은 class가&nbsp;확률이 가장 높음을 의미합니다.</p>
+<ol start="2" type="1">
+<li>sigmoid function</li>
+</ol>
+<p>모든 실수 입력 값을 0보다 크고 1보다 작은 미분 가능한 수로 변환하는 특징을 갖습니다.</p>
+<ul>
+<li><strong>Random Walk :</strong></li>
+</ul>
+<p>node 4에서 시작한다면, <strong>이동 가능한 neighbor node중 random으로 하나를 선택하여 이동</strong>합니다. 이후, <strong>고정된 수만큼 반복적으로 이동</strong>하면 됩니다. random walk를 수행하면 그래프상에서 이동한 일련의 node들이 결과로 도출됩니다. 아래 그림에서는 <strong>{4,5,8,9,8,11}</strong> 입니다.</p>
+<p><img src="../images/lec03/Untitled 4.png" class="img-fluid"></p>
+<p>random walk에서의 <span class="math inline">\(**z^T_v z_u\)</span>는 node u와 node v가 random walk 중 동시에 방문 될 확률**을 의미합니다. random walk 전략 <span class="math inline">\(R\)</span>이 있다고 할 때, node u에서 시작하여 전략 <span class="math inline">\(R\)</span>에 따라 random walk를 수행했을 때, node v를 방문할 확률, <span class="math inline">\(P_R(v|u)\)</span> 을 예측합니다. 이후, 두 vector 사이의 각도 <span class="math inline">\(\theta\)</span>가 <span class="math inline">\(P_R(v|u)\)</span>에 비례하도록 embedding 을 최적화합니다.</p>
+<p><img src="../images/lec03/Untitled 5.png" class="img-fluid"></p>
+<section id="why-random-walks" class="level3">
+<h3 class="anchored" data-anchor-id="why-random-walks">Why Random Walks?</h3>
+<p><strong>장점 1) Expressivity</strong></p>
+<p>local(본인)뿐만 아니라, higher-order neighborhood(여러 hop 떨어진 이웃)들의 정보를 포함할 수 있게 됩니다.</p>
+<p><strong>장점 2) Efficiency</strong></p>
+<p>모든 node를 한꺼번에 고려하지 않고, random walk를 통해 방문한 node들의 쌍만 고려하여 학습할 수 있습니다.</p>
+</section>
+<section id="unsupervised-feature-learning" class="level3">
+<h3 class="anchored" data-anchor-id="unsupervised-feature-learning">Unsupervised Feature Learning</h3>
+<p>다시 unsupervised feature learning에서의 목적으로 돌아와 보면, 유사성을 보존한 채 node embedding을 찾고자 합니다. <strong>설득력 있는 node embedding이 되기 위해서 가까운(nearby) 노드끼리 비슷한 embedding을 갖도록 해야 합니다.</strong></p>
+<p>자 그럼 <strong>’가까운’은 어떻게 정의</strong>할 수 있을까요?? 여기서 random walk가 등장합니다!! 바로 <strong>’random walk로 방문하게된 이웃들을 ’가깝다’라고 볼 수 있습니다.</strong></p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(N_R(u)\)</span> : random walk 전략 <span class="math inline">\(R\)</span>에 따라 node u에서 출발하여 방문하게된 이웃들(neighborhood)</p>
+</blockquote>
+</section>
+<section id="feature-learning-as-optimization" class="level3">
+<h3 class="anchored" data-anchor-id="feature-learning-as-optimization">Feature Learning as Optimization</h3>
+<p>그래프 <span class="math inline">\(G = (V,E)\)</span>가 주어졌을 때,</p>
+<p><strong>node embedding function, <span class="math inline">\(f: u \rightarrow \R^d : f(u) = z_u\)</span> 을 최적화</strong>해야합니다.</p>
+<p>이를 위해서, <strong>log-likelihood objective는 <span class="math inline">\(max_f \sum_{u\in V}\log P(N_R(u)|z_u)\)</span></strong> 으로, 해당 값이 최대화 되는 함수 <span class="math inline">\(f\)</span>를 찾아야합니다.</p>
+</section>
+<section id="random-walk-optimization" class="level3">
+<h3 class="anchored" data-anchor-id="random-walk-optimization">Random Walk Optimization</h3>
+<p><strong>Step 1)</strong> random walk strategy <span class="math inline">\(R\)</span>에 따라서 각 node u에서 고정된 크기의 짧은 random walk를 수행합니다.</p>
+<p><strong>Step 2)</strong> 각 node 마다 multiset 이웃 집합, <span class="math inline">\(N_R(u)\)</span>을 모읍니다. *multiset : random walk동안 특정 노드를 여러 번 반복할 수 있으므로, 중복된 원소를 가질 수 있습니다.</p>
+<p><strong>Step 3)</strong> node u가 주어졌을 때, 이웃들 <span class="math inline">\(N_R(u)\)</span> 을 예측할 수 있도록 embedding을 최적화합니다.</p>
+<p><span class="math inline">\(max_f \sum_{u\in V}\log P(N_R(u)|z_u)\)</span></p>
+<p>위 식은 모든 node u, 그리고 그 각각의 이웃 노드 v에 대한 식으로 풀어볼 수 있습니다.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(L = \sum_{u\in V}\sum_{v\in N_R(u)} -\log(P(v|z_u))\)</span>,</p>
+</blockquote>
+<p>또한, <strong>node u에 가까운 node v를 판별(비교)하고자 하는 점에서 softmax</strong>를 사용하여, <span class="math inline">\(p(v|z_u)\)</span> 를 표현할 수 있습니다.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(p(v|z_u) = \frac{exp(z^T_uz_v)}{\sum_{n\in V}exp(z^T_u z_n)}\)</span></p>
+</blockquote>
+<p><img src="../images/lec03/Untitled 6-1681368211905-8.png" class="img-fluid"></p>
+<p>다음과 같이 정의한 loss function <span class="math inline">\(L\)</span> 이 최소화되도록 <span class="math inline">\(z_u\)</span>를 찾습니다!!</p>
+<p>하지만, 다음 식은 매우 계산이 expensive 합니다. 모든 node에 대한 계산이 2번이나(위 그림에서 파랑색, 노랑색 부분에 해당) 중첩되게 이루어지기 때문에, complexity가 무려 <span class="math inline">\(O(|V|^2)\)</span>입니다.</p>
+<p>이를 실제에서 활용하기 위해선, <strong>softmax 항의 분모에 해당하는 부분을 근사</strong>해야 합니다.</p>
+<p>→ 방법은, <strong>‘Negative Sampling’</strong>입니다!!</p>
+<p>모든 노드에 대한 값을 구해 normalize하는 것이 아니라, <strong>k개의 random negative sample에 대해 정규화를 진행</strong>합니다. 이때 k개의 sample을 sampling할 때는 degree에 기반하여 <strong>bias sampling</strong>(<span class="math inline">\(n_i \sim P_v\)</span>)을 수행합니다. <strong>higher degree(undirected graph의 경우, 연결된 edge 수)를 가질수록 sample 될 확률이 높아</strong>집니다. 샘플의 갯수 k가 커질 수록, 더 정교한 예측이 가능하지만, 동시에 bias가 커지는 단점이 존재합니다. 보통, k는 5~20으로 지정합니다.</p>
+<p><img src="../images/lec03/Untitled 7.png" class="img-fluid"></p>
+<p><strong>loss function을 최적화할 때 보통 stochastic gradient descent를 사</strong>용합니다. gradient descent란, random point에서 시작하여 미분값을 계산하고 learning rate에 맞게 방향을 조금씩 변화합니다. 이 작업을 수렴할 때 까지 반복합니다. 특히, stochastic gradient descent는 모든 example에 대해서 해당 계산을 수행하는 것이 아니라, 매번 랜덤으로 선택한 하나의 example에 대해서만 미분값을 계산하고 업데이트 해나갑니다.</p>
+<p>자 여기까지 <strong>Random Walk 과정을 요약</strong>해보자면,</p>
+<p><strong>Step 1)</strong> random walk strategy <span class="math inline">\(R\)</span>에 따라서 각 node u에서 고정된 크기의 짧은 random walk를 수행합니다.</p>
+<p><strong>Step 2)</strong> 각 node 마다 multiset 이웃 집합, <span class="math inline">\(N_R(u)\)</span>을 모읍니다.</p>
+<p><strong>Step 3)</strong> loss funcion : <span class="math inline">\(L = \sum_{u\in V}\sum_{v\in N_R(u)} -\log(P(v|z_u))\)</span> 다음 loss function을 negative sampling을 사용해 softmax 부분을 근사하고, stochastic gradient descent를 통해 최적화여 embedding을 구합니다.</p>
+</section>
+<section id="how-should-we-randomly-walk" class="level3">
+<h3 class="anchored" data-anchor-id="how-should-we-randomly-walk">How should we randomly walk?</h3>
+<p>그렇다면 <strong>효과적인 random walk 전략 <span class="math inline">\(R\)</span>은 무엇</strong>일까요?? 고정 크기 만큼의 random walk와 같은 단순한 방법은 유사성을 표현하기에 매우 한정적입니다. 이를 극복하기 위해 등장한 방법이 <strong>node2vec</strong> 입니다. 표현력이 좋은 (expressive)한 이웃들을 모으기 위해 <strong>‘biased 2nd order random walk <span class="math inline">\(R\)</span>’</strong> 이 사용됩니다.</p>
+</section>
+<section id="node2vec-biased-walks" class="level3">
+<h3 class="anchored" data-anchor-id="node2vec-biased-walks">node2vec : Biased Walks</h3>
+<p>핵심 아이디어는 <strong>local + global 탐색의 tradeoff를 잘 고려하여 biased walk를 수행하는 것</strong>입니다. 이때 <strong>local은 BFS(Breadth-First Search) 너비 우선 탐색을 통해, global은 DFS(Depth-First Search) 깊이 우선 탐색</strong>을 통해 얻을 수 있습니다.</p>
+<p><img src="../images/lec03/Untitled 8.png" class="img-fluid"></p>
+</section>
+<section id="interpolating-bfs-and-dfs" class="level3">
+<h3 class="anchored" data-anchor-id="interpolating-bfs-and-dfs">Interpolating BFS and DFS</h3>
+<p>node u 에 대한 <span class="math inline">\(N_R(u)\)</span>를 모을 때, 2가지 hyper-parameter를 지정하여 BFS와 DFS 방법을 동시에 적절히 활용할 수 있습니다.</p>
+<p><strong>1) return parameter <span class="math inline">\(p\)</span> :</strong> 이전 node로 돌아갈 확률</p>
+<p><strong>2) in-out parameter <span class="math inline">\(q\)</span> :</strong> BFS(inwards)와 DFS(outwards)간의 비율(ratio)</p>
+</section>
+<section id="biased-2nd-order-random-walks" class="level3">
+<h3 class="anchored" data-anchor-id="biased-2nd-order-random-walks">Biased 2nd-order random walks</h3>
+<p>다음 그림은 random walk 중 node <span class="math inline">\(s_1\)</span>에서 node <span class="math inline">\(w\)</span>로 이동한 상황입니다.</p>
+<p>이제 <span class="math inline">\(w\)</span>에서 취할 수 있는 행동 유형은 총 3가지, &lt;<strong>(1) 이전 노드 <span class="math inline">\(s_1\)</span>으로 돌아가기, (2) <span class="math inline">\(s_1\)</span>에서 동일하게 1 hop 떨어져 있는 <span class="math inline">\(s_2\)</span>로 이동, (3)더 멀리 <span class="math inline">\(s_3, s_4\)</span>로 이동</strong> &gt;이 있습니다. 앞서 정의했던 parameter들을 적용해보면, <span class="math inline">\(1/p\)</span>가 다시 돌아갈 확률, <span class="math inline">\(1/q\)</span> 를 더 멀리 이동할 확률로 표현할 수 있습니다. 이후, <span class="math inline">\(w\)</span>에서의 4가지 선택지(<span class="math inline">\(s_1, s_2, s_3,s_4\)</span>)에 대한 확률을 1로 맞추어 정규화합니다. BFS와 같이 inwards를 돌아다니게 하려면 p값을 낮추면 되고, DFS와 같이 outwards를 돌아다니려면 q값을 낮추면 됩니다.</p>
+<p><img src="../images/lec03/Untitled 9.png" class="img-fluid"></p>
+</section>
+<section id="node2vec-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="node2vec-algorithm">node2vec algorithm</h3>
+<p><strong>Step 1)</strong> random walk 확률을 계산합니다.</p>
+<p><strong>Step 2)</strong> 각 노드 u 에서 길이 <span class="math inline">\(l\)</span> 만큼의 random walk를 <span class="math inline">\(r\)</span>번 시뮬레이션합니다.</p>
+<p><strong>Step 3)</strong> Stochastic gradient descent를 사용하여 node2vec objective function을 최적화합니다.</p>
+<p>시간 복잡도는 linear-time이며, 각 step이 병렬적으로 수행될 수 있습니다. 다만, 해당 방법의 단점은 모든 node들이 각각의 node embedding을 학습해야 한다는 것입니다. 따라서 그래프 크기가 커질수록, 더 많은 embedding을 학습해야 합니다.</p>
+<ul>
+<li>일반적으로 node2vec은 node classification을 잘 수행한다고 알려져있으며, random walk는 전반적으로 우수한 성능을 보입니다. 하지만 <strong>어떤 알고리즘을 사용해야 하는가는 본인의 연구에 제일 잘 맞는 방법을 채택</strong>해야 합니다.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="embedding-entire-graphs" class="level2">
+<h2 class="anchored" data-anchor-id="embedding-entire-graphs">3.3 Embedding Entire Graphs</h2>
+<p>3장에서는 node level에서 벗어나 <strong>그래프 전체를 embedding</strong> 해봅시다.</p>
+<p><img src="../images/lec03/Untitled 10.png" class="img-fluid"></p>
+<p><strong>방법 1) node embedding의 합</strong></p>
+<p>random walk 혹은 node2vec에서 구한 node embedding을 이용하여 계산(합/평균) 합니다.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(z_G = \sum_{v\in G }z_v\)</span></p>
+</blockquote>
+<ul>
+<li>해당 방법은 molecules를 분류하는 연구에 성공적으로 적용되었습니다.</li>
+</ul>
+<p><strong>방법 2) ‘virtual node’</strong></p>
+<p>그래프의 <strong>특정 부분을 대표하는 ’virtual node’를 추출</strong>하고, 여기에 graph embedding 기술을 적용합니다.</p>
+<p><img src="../images/lec03/Untitled 11.png" class="img-fluid"></p>
+<p><strong>방법 3) Anonymous Walk Embeddings</strong></p>
+<p>첫 번째로 <strong>방문한 node부터 순서대로 index를 부여</strong>합니다. <strong>random walk 로 이동하면서 index sequence를 기록</strong>합니다. 방문한 node가 실제 어떤 node인지 상관없이 방문한 순서에 따라 index가 주어집니다.</p>
+<p><img src="../images/lec03/Untitled 12.png" class="img-fluid"></p>
+<p>random walk 길이가 3일때, 가능한 anonymous walk의 수는 총 5개 입니다. → <span class="math inline">\(w_1=111,w_2=112,w_3=121,w_4=122,w_5=123\)</span></p>
+<p><strong>가능한 anonymous walk수는 random walk 길이에 따라 exponential하게 증가</strong>합니다.</p>
+<p><img src="../images/lec03/Untitled 13.png" class="img-fluid"></p>
+<section id="simple-use-of-anonymous-walks" class="level3">
+<h3 class="anchored" data-anchor-id="simple-use-of-anonymous-walks">Simple Use of Anonymous Walks</h3>
+<p>step 수 <span class="math inline">\(l\)</span> 을 정한 뒤, <strong>가능한 anonymous walk를 계산</strong>합니다. 이후 <strong>각 walk에 대한 probability distribution을 계산</strong>합니다. 예를 들어, <span class="math inline">\(l=3\)</span>일 때 가능한 walk는 5개였습니다. 따라서 각 5개 walk에 대한 확률을 계산하여, 해당 그래프를 <strong>5차원의 vector로 표현</strong>할 수 있습니다.</p>
+<blockquote class="blockquote">
+<p><span class="math inline">\(Z_G[i]\)</span> = probability of anonymous walk <span class="math inline">\(w_i\)</span></p>
+</blockquote>
+</section>
+<section id="sampling-anonymous-walks" class="level3">
+<h3 class="anchored" data-anchor-id="sampling-anonymous-walks">Sampling Anonymous Walks</h3>
+<p>그렇다면 적당한 random walk는 몇 개 일까요? <span class="math inline">\(\delta\)</span>의 확률보다 낮게 <span class="math inline">\(\epsilon\)</span> 이상의 error를 갖게 하기 위해선 다음 식을 만족해야 합니다.</p>
+<p><img src="../images/lec03/Untitled 14.png" class="img-fluid"></p>
+</section>
+<section id="new-idea-learn-walk-embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="new-idea-learn-walk-embeddings">New idea : Learn Walk Embeddings</h3>
+<p>새로운 아이디어는 anonymous walk <span class="math inline">\(w_i\)</span>의 embedding <span class="math inline">\(z_i\)</span>를 학습하는 것입니다. 이를 통해, 그래프 embedding이 가능합니다. <span class="math inline">\(Z = \{z_i : i = 1 \dots \eta \},\;\eta\)</span> : sampled anonymous walks 갯수</p>
+<p><strong>anynomous random walk를 샘플링</strong>합니다. <strong>이후 <span class="math inline">\(\Delta\)</span>-size window 내에 어떤 walk 가 함께 발생할지 예측합니다.</strong> 예를 들어, <span class="math inline">\(\Delta\)</span>가 1일 때 경우, <strong>직전과 직후에 어떤 walk가 발생할 지 예측</strong>하는 것입니다. 이를 수식으로 풀어보면 objective는 다음과 같습니다. graph embedding <span class="math inline">\(Z_G\)</span>와 time window 내에 walk들(<span class="math inline">\(w_{t-\Delta}, \dots, w_{t+\Delta}\)</span>)이 주어졌을 때 <span class="math inline">\(w_t\)</span>에 대한 log probability를 최대화해야 합니다. 모든 node가 출발점이 되어서 각각의 objective를 계산하고, 이를 모두 더합니다.</p>
+<p><img src="../images/lec03/Untitled 15.png" class="img-fluid"></p>
+<p>이제 <strong>node u 의 이웃 <span class="math inline">\(N_R(u)\)</span>은 random walk 의 set으로 표현</strong>됩니다.</p>
+<p><span class="math inline">\(N_R(u) = \{w_1^u, w_2^u,\dots, w_T^u\}\)</span></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../images/lec03/Untitled 16.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Untitled 16</figcaption><p></p>
+</figure>
+</div>
+<p>다음과 같이 graph embedding <span class="math inline">\(Z_G\)</span>를 구한뒤, inner product 혹은 neural network를 거쳐 graph classification과 같은 예측 작업에 사용할 수 있습니다.</p>
+</section>
+<section id="summary-of-graph-embedding" class="level3">
+<h3 class="anchored" data-anchor-id="summary-of-graph-embedding">Summary of Graph embedding</h3>
+<p>지금까지, <strong>총 3가지 그래프 embedding 방법</strong>에 대해 다루었습니다.</p>
+<p><strong>방법 1)</strong> deep walk 혹은 node2vec으로 구한 node embedding을 합하거나 평균내기</p>
+<p><strong>방법 2)</strong> virtual node와 같이 super-node구해서 embedding하기</p>
+<p><strong>방법 3)</strong> Anonymous Walk Embedding</p>
+<p><strong>3-1)</strong> anonymous walk sample을 구한 뒤, 각각의 walk가 몇번 발생했는지 비율 계산</p>
+<p><strong>3-2)</strong> anonymous walk를 embedding하고 이를 합쳐 graph embedding하기</p>
+<p>*차후의 강의에서는 Hierarchical Embedding에 대해 다룹니다(Lecture 8).</p>
+<p>graph상의 node들을 계층적으로 묶은 뒤, 이들을 합/평균 내어 graph embedding 합니다.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../images/lec03/Untitled 17.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Untitled 17</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="how-to-use-embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="how-to-use-embeddings">How to Use Embeddings</h3>
+<p>열심히 구한 embedding은 아래와 같이 활용 가능합니다🙂🙂</p>
+<p><strong>1)</strong> Clustering/ community detection</p>
+<p><strong>2)</strong> Node classification</p>
+<dl>
+<dt><strong>3)</strong> Link Prediction</dt>
+<dd>
+<p>2개의 embedding(<span class="math inline">\(z_i,z_j\)</span>)에 대해 concatenate, hadamard, sum/avg, distance 계산</p>
+</dd>
+</dl>
+<p><strong>4)</strong> Graph classification</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

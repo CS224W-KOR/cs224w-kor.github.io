@@ -1,0 +1,8 @@
+---
+toc: true
+title: "Lecture 16"
+description: Advanced Topics on GNNs
+author: "JooHo Kim"
+date: "2022-08-31"
+categories: [LEC16]
+---

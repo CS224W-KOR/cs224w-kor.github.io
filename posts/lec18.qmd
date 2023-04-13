@@ -1,0 +1,12 @@
+---
+toc: true
+title: "Lecture 18"
+description: Guest Lecture
+author: "Jung Yeon Lee"
+date: "2022-09-08"
+categories: [LEC18, GUEST]
+---
+
+# Geometric Deep Learning
+
+> GNNs Beyond Permutation Equivariance

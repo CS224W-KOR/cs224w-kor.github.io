@@ -1,9 +1,9 @@
 ---
 toc: true
 title: "Lecture 2"
-description: Traditional Methods for Machine Learning in Graphs
+description: Traditional Methods for ML on Graphs
 author: "JooHo Kim"
-date: "2022-07-13"
+date: "2022-07-07"
 categories: [LEC02]
 ---
 

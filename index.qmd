@@ -2,7 +2,8 @@
 title: "CS224W Lecture Korean Summary"
 listing:
   contents: posts
-  sort: "date desc"
+  sort: 
+    - "date desc"
   type: default
   categories: true
   sort-ui: true

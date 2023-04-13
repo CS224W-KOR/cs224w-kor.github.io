@@ -1,9 +1,9 @@
 ---
 toc: true
 title: "Lecture 4"
-description: Graph as Matrix
+description: Link Analysis - PageRank
 author: "Jung Yeon Lee"
-date: "2022-07-20"
+date: "2022-07-14"
 categories: [LEC04]
 ---
 

@@ -1,0 +1,9 @@
+---
+toc: true
+title: "Lecture 9"
+description: Theory of Graph Neural Networks
+author: "JooHo Kim"
+date: "2022-08-10"
+categories: [LEC09]
+---
+

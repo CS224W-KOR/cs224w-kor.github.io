@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.313">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="mhkim9714">
+<meta name="dcterms.date" content="2022-07-27">
+<meta name="description" content="Graph Neural Networks 1 - GNN Model">
+
+<title>CS224W-KOR Blog - Lecture 6</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">CS224W-KOR Blog</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../about.html">
+ <span class="menu-text">Study Group</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/CS224W-KOR"><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Lecture 6</h1>
+                  <div>
+        <div class="description">
+          Graph Neural Networks 1 - GNN Model
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">LEC06</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>mhkim9714 </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 27, 2022</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction-to-graph-neural-networks" id="toc-introduction-to-graph-neural-networks" class="nav-link active" data-scroll-target="#introduction-to-graph-neural-networks">6.1 Introduction to Graph Neural Networks</a>
+  <ul class="collapse">
+  <li><a href="#recap-shallow-encoders" id="toc-recap-shallow-encoders" class="nav-link" data-scroll-target="#recap-shallow-encoders">Recap: Shallow Encoders</a></li>
+  <li><a href="#limitations-of-shallow-encoder" id="toc-limitations-of-shallow-encoder" class="nav-link" data-scroll-target="#limitations-of-shallow-encoder">Limitations of Shallow Encoder</a></li>
+  <li><a href="#deep-graph-encoders" id="toc-deep-graph-encoders" class="nav-link" data-scroll-target="#deep-graph-encoders">Deep Graph Encoders</a></li>
+  <li><a href="#why-is-it-hard" id="toc-why-is-it-hard" class="nav-link" data-scroll-target="#why-is-it-hard">Why is it Hard?</a></li>
+  </ul></li>
+  <li><a href="#basics-of-deep-learning" id="toc-basics-of-deep-learning" class="nav-link" data-scroll-target="#basics-of-deep-learning">6.2 Basics of Deep Learning</a>
+  <ul class="collapse">
+  <li><a href="#machine-learning-as-optimization" id="toc-machine-learning-as-optimization" class="nav-link" data-scroll-target="#machine-learning-as-optimization">Machine Learning as Optimization</a></li>
+  <li><a href="#gradient-descent" id="toc-gradient-descent" class="nav-link" data-scroll-target="#gradient-descent">Gradient Descent</a></li>
+  <li><a href="#stochastic-gradient-descent-sgd" id="toc-stochastic-gradient-descent-sgd" class="nav-link" data-scroll-target="#stochastic-gradient-descent-sgd">Stochastic Gradient Descent (SGD)</a></li>
+  <li><a href="#back-propagation" id="toc-back-propagation" class="nav-link" data-scroll-target="#back-propagation">Back-propagation</a></li>
+  <li><a href="#non-linearity" id="toc-non-linearity" class="nav-link" data-scroll-target="#non-linearity">Non-linearity</a></li>
+  <li><a href="#multi-layer-perceptron-mlp" id="toc-multi-layer-perceptron-mlp" class="nav-link" data-scroll-target="#multi-layer-perceptron-mlp">Multi-layer Perceptron (MLP)</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul></li>
+  <li><a href="#deep-learning-for-graphs" id="toc-deep-learning-for-graphs" class="nav-link" data-scroll-target="#deep-learning-for-graphs">6.3 Deep Learning for Graphs</a>
+  <ul class="collapse">
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">Setup</a></li>
+  <li><a href="#naive-approach" id="toc-naive-approach" class="nav-link" data-scroll-target="#naive-approach">Naive Approach</a></li>
+  <li><a href="#from-images-to-graphs" id="toc-from-images-to-graphs" class="nav-link" data-scroll-target="#from-images-to-graphs">From Images to Graphs</a></li>
+  <li><a href="#idea-aggregate-neighbors" id="toc-idea-aggregate-neighbors" class="nav-link" data-scroll-target="#idea-aggregate-neighbors">Idea: Aggregate Neighbors</a></li>
+  <li><a href="#deep-model-many-layers" id="toc-deep-model-many-layers" class="nav-link" data-scroll-target="#deep-model-many-layers">Deep Model: Many Layers</a></li>
+  <li><a href="#the-math-deep-encoder" id="toc-the-math-deep-encoder" class="nav-link" data-scroll-target="#the-math-deep-encoder">The Math: Deep Encoder</a></li>
+  <li><a href="#matrix-formulation" id="toc-matrix-formulation" class="nav-link" data-scroll-target="#matrix-formulation">Matrix Formulation</a></li>
+  <li><a href="#how-to-train-a-gnn" id="toc-how-to-train-a-gnn" class="nav-link" data-scroll-target="#how-to-train-a-gnn">How to train a GNN</a></li>
+  <li><a href="#model-design-overview" id="toc-model-design-overview" class="nav-link" data-scroll-target="#model-design-overview">Model Design: Overview</a></li>
+  <li><a href="#summary-1" id="toc-summary-1" class="nav-link" data-scroll-target="#summary-1">Summary</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="introduction-to-graph-neural-networks" class="level1">
+<h1>6.1 Introduction to Graph Neural Networks</h1>
+<section id="recap-shallow-encoders" class="level2">
+<h2 class="anchored" data-anchor-id="recap-shallow-encoders">Recap: Shallow Encoders</h2>
+<p>이전 강의에서 배운 내용을 다시 떠올려 봅시다. 다양한 downstream task를 머신러닝으로 푸는 과정에서 비정형 데이터인 그래프 인풋을 활용하기 위해 그래프를 임베딩하는 방법을 공부했었습니다.</p>
+<blockquote class="blockquote">
+<p><strong><em>Intuition</em></strong> <strong>그래프 상에서 similar한 노드</strong>끼리 <strong>임베딩 공간에서도 가깝도록</strong> 임베딩 하자!</p>
+</blockquote>
+<p><img src="https://i.imgur.com/ErSAzh0.png?2" class="img-fluid"></p>
+<p>임베딩 공간에서의 노드 간 similarity는 간단하게 코사인 유사도를 통해 구할 수 있지만, 1) <strong>원래 그래프 상에서의 노드 간 similarity</strong>와 2) 노드를 임베딩 벡터로 mapping하는 <strong>encoder</strong>은 우리가 새로 정의해야 합니다.</p>
+<ol type="1">
+<li><p><strong>Encoder: Shallow Encoder</strong></p>
+<p><img src="https://i.imgur.com/CEQ7kzS.png?1" class="img-fluid"></p>
+<p>먼저, 인풋 그래프의 노드를 d차원의 벡터로 임베딩하기 위해 가장 간단한 <strong>look-up table</strong> 방식인 <strong>Shallow Encoder</strong>를 다뤘습니다. 예를 들어, 노드의 갯수가 <span class="math inline">\(\|V\|\)</span>인 경우 임베딩 행렬의 크기는 <span class="math inline">\(\|V\|\times d\)</span> 가 됩니다.</p></li>
+<li><p><strong>Similarity Function: Random Walk (DeepWalk, Node2vec)</strong> <br>또한, <strong>Random Walk</strong>상에서 <strong>co-occur 되는 두 노드는 그래프 상 similar한 노드</strong>라고 정의하였습니다. Random Walk의 전략에 따라 서로 다른 DeepWalk와 Node2vec 등의 방법을 배웠던 것 기억 나시나요?</p></li>
+</ol>
+</section>
+<section id="limitations-of-shallow-encoder" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-of-shallow-encoder">Limitations of Shallow Encoder</h2>
+<p>이렇듯 Shallow Encoder을 통해서도 성공적으로 노드와 그래프를 임베딩할 수 있지만, 다음과 같은 한계점 때문에 보다 더 고도화된 Encoder를 재정의 할 필요가 있습니다.</p>
+<ul>
+<li><p><span class="math inline">\(O(\|V\|)\)</span> <strong>파라미터가 필요함</strong> <br>그래프의 크기가 커지면 커질수록, 즉 노드의 갯수 <span class="math inline">\(\|V\|\)</span>가 증가함에 따라, 임베딩 행렬의 크기도 선형적으로 증가합니다. 또한 각 노드가 모두 서로 다른 d 차원의 임베딩 벡터를 가지기 때문에 파라미터 공유도 일어나지 않습니다.</p></li>
+<li><p><strong>Transductivity</strong></p>
+<ul>
+<li><p><strong>Transductive Learning</strong> <br>그래프 학습 관점에서 Transductive Learning이란 <strong>하나의 그래프 상</strong> 일부 노드와 엣지의 ground truth를 아는 상태에서 나머지 노드와 엣지의 값을 추정하는 방식입니다. <strong>학습 과정 중, 모델은 ground truth를 알지 못하는 노드를 포함한 모든 노드와 엣지를 사용합니다.</strong><br> <img src="https://i.imgur.com/Jpte1Hu.png?1" class="img-fluid"></p></li>
+<li><p><strong>Inductive Learning</strong> <br>그래프 학습 관점에서 Inductive Learning이란 ground truth를 알고 있는 그래프(들)에 대해 모델을 학습 한 후, 전혀 새로운 그래프의 노드와 엣지의 값을 추정하는 방식입니다. <strong>즉, 학습이 완료된 후에는 모델이 새로운 처음 보는 노드의 값을 추정하는 데에도 적용될 수 있다는 의미이죠.</strong><br> <img src="https://i.imgur.com/Fi3vDRg.png?1" class="img-fluid"></p></li>
+</ul>
+<p>Shallow Encoder은 Transductive Learning으로 학습해야 하는 대표적인 케이스입니다. 학습 도중 보지 못한 노드는 look-up table상 존재할 리 없으니 맵핑되는 임베딩 벡터가 없을 것이고, 임베딩 벡터가 없다면 node classification 등의 downstream task에서 예측이 불가능하겠죠? 이런 특성 때문에 시간에 따라 노드가 추가될 수 있는 evolving 그래프와 같은 경우 그래프가 변할 때마다 전체 임베딩을 다시 scratch부터 학습해야 한다는 불편함이 있습니다.</p></li>
+<li><p><strong>노드 feature을 활용하지 않음</strong> <br>대부분의 그래프 데이터셋은 우리가 활용할 수 있는 노드 feature이 존재합니다. 예를 들어, 소셜 그래프의 경우, 단순히 철수가 영희가 친구라는 정보 이외에도, 철수는 성균관대학교에 다니는 23세 남학생이라는 정보도 존재합니다. 단순한 노드 간 연결 상태 이외에도 이러한 노드 feature를 고려하여 노드를 임베딩 한다면 정보량이 더 풍부해져 효과적일 것입니다.</p></li>
+</ul>
+</section>
+<section id="deep-graph-encoders" class="level2">
+<h2 class="anchored" data-anchor-id="deep-graph-encoders">Deep Graph Encoders</h2>
+<p>이제 지금껏 다뤄왔던 간단한 look-up table로 이루어진 encoder에서 벗어나, 좀 더 복잡한 형태의 <strong>Deep Encoder</strong>을 공부해봅시다.</p>
+<p><img src="https://i.imgur.com/QUPHpk9.png?1" class="img-fluid"></p>
+<p>Deep Encoder은 인풋 <strong>그래프에 수차례의 비선형적인 transformation</strong>을 가하여 <strong>end-to-end</strong>으로 최종 임베딩을 얻는 방식을 말합니다. 수업 슬라이드에 쓰인 말 그대로,</p>
+<blockquote class="blockquote">
+<p><strong>Deep Encoder = multiple layers of non-linear transformations based on graph structure</strong></p>
+</blockquote>
+<p>로 생각할 수 있겠습니다. 잘 와닿지 않으신다고요? 사실, 인풋 데이터가 우리가 익숙치 않은 형태의 그래프라 그렇지, 오늘날의 머신러닝/딥러닝 모델이 이미지나 텍스트와 같은 정형 데이터를 처리하는 방식과 유사합니다.</p>
+<p><img src="https://i.imgur.com/6AjCY8M.png?1" class="img-fluid"></p>
+<p>위의 두 그림이 유사하다는 점이 한눈에 보이실 겁니다. 이해를 돕기 위해 가장 기본적인 CNN 구조를 생각해 볼까요? 원본 이미지가 여러 convolution layer을 거치며 더욱 더 축약된 feature map을 만드는 방식과 유사하게, 인풋으로 들어온 그래프는 여러 graph convolution layer을 거치며 원본 그래프의 의미를 적절히 축약하는 노드 임베딩을 만드는 것입니다.</p>
+<p>또한, 개 고양이 이미지 분류 모델이 지도 학습으로 학습될 때 학습 데이터에 대해 각 이미지가 개인지, 고양이인지 나타내는 클래스 label을 활용하는 것과 같이, 노드 분류 문제의 경우 각 노드에 대한 클래스 label이 있다면 이를 직접 활용하여 encoder를 학습할 수 있습니다.</p>
+<blockquote class="blockquote">
+<p>💡 이 경우 decoder은 <strong>노드 클래스 label</strong> 입니다.</p>
+</blockquote>
+<p><br>물론, ground truth label이 존재하지 않는 비지도 학습 상황에서는 기존 Shallow Encoder을 학습하던 방법과 동일하게 Random Walk 등으로 정의되는 인풋 그래프상 노드 similarity를 유지하도록 학습할 수도 있겠죠. 이 부분은 본 강의 말에 다시 다루니까 이해되지 않는대도 걱정 마세요! :)</p>
+<blockquote class="blockquote">
+<p>💡 이 경우 decoder은 임베딩 벡터 간 similarity metric인 <strong>벡터 내적</strong> 등으로 정의할 수 있습니다. (lecture 4)</p>
+</blockquote>
+<p><br>이렇게 Deep Encoder을 통해 얻은 노드/그래프 임베딩은 여러 task에서 <strong>agnostic</strong>하게 활용할 수 있습니다.</p>
+<ul>
+<li>학습된 임베딩을 활용할 수 있는 여러 task의 예
+<ul>
+<li>Node classification</li>
+<li>Link prediction</li>
+<li>Community detection</li>
+<li>Network similarity</li>
+</ul></li>
+</ul>
+</section>
+<section id="why-is-it-hard" class="level2">
+<h2 class="anchored" data-anchor-id="why-is-it-hard">Why is it Hard?</h2>
+<p>아까 언급했듯이 Deep Encoder을 통해 그래프를 임베딩 한다는 개념은 지금껏 우리가 정형 데이터를 처리했던 방식과 비슷하기 때문에 낯설지 않습니다.</p>
+<p>그렇다면 그냥 널리 사용되고 있는 CNN이나 RNN을 활용해서 그래프를 임베딩 하면 되지 않을까요?</p>
+<p><img src="https://i.imgur.com/Gc2msuV.png?1" class="img-fluid"></p>
+<p><strong>그럴 수 없습니다.</strong></p>
+<p>정형 데이터인 이미지, 텍스트에 비해 비정형 데이터인 그래프는 너무나도 복잡하기 때문이죠. 그래프는 이미지와 같이 (0,0) 등의 <strong>기준점을 둘 수 없으며</strong>, 텍스트와 같이 <strong>명백한 순서가 있지도 않습니다.</strong> 그래프는 제각기 다른 사이즈 일 수 있으며 각각의 topological structure 또한 모두 다릅니다. 심지어는 노드 마다 multimodal feature을 가질 수도 있습니다.</p>
+<p>따라서, 비정형 그래프 구조에서 각 노드의 구조적 특징 및 노드 feature을 고려하여 적절하게 임베딩 하는 새로운 방법이 필요합니다.</p>
+<blockquote class="blockquote">
+<p>💡 <strong>노드의 Multimodal feature</strong> <br>다시 소셜 그래프를 떠올려 봅시다. 각 노드는 철수, 영희를 포함한 개인을 나타내고, 엣지는 각 개인 사이에 친구 관계가 성립하는지를 나타냅니다. 이 때, 철수라는 노드는 프로필 사진(이미지), 자기 소개 글(텍스트) 등 여러 부가적인 feature을 가질 수 있습니다.</p>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="basics-of-deep-learning" class="level1">
+<h1>6.2 Basics of Deep Learning</h1>
+<p>이번 파트는 본격적으로 그래프 데이터를 위한 딥러닝을 설명하기에 앞서 딥러닝에 익숙하지 않은 사람들을 위해 <strong>딥러닝의 기본 개념</strong>을 간단하게 설명하는 부분입니다. 많은 내용을 커버하긴 하지만 딥러닝 초심자들은 CS231n과 같은 딥러닝 강의를 먼저 수강하고 오심을 추천드립니다!</p>
+<section id="machine-learning-as-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="machine-learning-as-optimization">Machine Learning as Optimization</h2>
+<p>먼저 간단한 지도 학습 문제를 생각해 봅시다. 지도 학습(Supervised Learning)이란 데이터에 대한 ground truth label이 존재하는 경우를 일컫는데, 다시 말해 input <span class="math inline">\(x\)</span>가 주어졌을 때, label <span class="math inline">\(y\)</span>를 예측하는 문제라고 할 수 있습니다. 이러한 task는 아래와 같은 식을 통해 최적화 문제로 바꾸어 해결할 수 있습니다.</p>
+<p><img src="https://i.imgur.com/JouDoxA.png" class="img-fluid"></p>
+<p>위 식을 이해하기 위해 먼저 구성 요소에 대해 하나씩 짚어보겠습니다.</p>
+<blockquote class="blockquote">
+<p><strong><span class="math inline">\(\theta\)</span> : 우리가 최적화(학습) 하려는 파라미터들</strong></p>
+</blockquote>
+<p>최종적으로 우리가 학습하고자 하는 파라미터 값입니다. 예를 들어 앞의 Shallow Encoder에서는 학습으로 결정되는 <span class="math inline">\(\|V\|\times d\)</span> 사이즈의 임베딩 look-up table이 <span class="math inline">\(\theta\)</span>에 해당하겠죠.</p>
+<blockquote class="blockquote">
+<p><strong><span class="math inline">\(\mathcal{L}\)</span> : Loss 함수</strong></p>
+</blockquote>
+<p>Loss 함수는 <strong>ground truth label <span class="math inline">\(y\)</span>와 머신러닝 모델이 예측한 label <span class="math inline">\(f(x)\)</span>의 차이</strong>를 계산하는 metric 입니다. 회귀(Regression) 문제에서 주로 사용되는 L2 loss와 분류(Classification) 문제에서 주로 사용되는 Cross entropy loss 이외에도 L1 loss, Huber loss, Hinge loss 등 다양한 loss 함수가 존재합니다. 대표적인 loss 함수인 L2 loss와 Cross entropy loss의 수식은 각각 다음과 같습니다.</p>
+<p><strong>L2 loss</strong></p>
+<p><img src="https://i.imgur.com/Qhw8Ggq.png?1" class="img-fluid"></p>
+<p><strong>Cross entropy loss</strong></p>
+<p><img src="https://i.imgur.com/klLFvXV.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/QxFbShn.png?1" class="img-fluid"></p>
+<p>결국 우리가 원하는 것은 모델이 예측한 label이 정답 ground truth label에 가까워지는 것이기 때문에, 이 <strong>loss 함수 값이 작으면 작을수록 우리의 모델이 더 정확한 예측을 한다는 의미</strong>입니다.</p>
+<p><img src="https://i.imgur.com/JouDoxA.png" class="img-fluid"></p>
+<p>그럼 이제 위에서 공부한 각 구성 요소를 바탕으로 다시 이 최적화 식을 해석해 봅시다. 결국 우리가 풀고자 하는 머신러닝 문제는, <strong>정답 label <span class="math inline">\(y\)</span>와 모델이 예측한 label <span class="math inline">\(f(x)\)</span>의 차이를 나타내는 loss 함수를 최소화 하는 방향으로 모델 파라미터 <span class="math inline">\(\theta\)</span>를 최적화하는 문제</strong>로 해석할 수 있습니다.</p>
+</section>
+<section id="gradient-descent" class="level2">
+<h2 class="anchored" data-anchor-id="gradient-descent">Gradient Descent</h2>
+<p>지금까진 두루뭉술하게만 보였던 머신러닝 문제를 동일한 의미인 최적화 문제로 재정의했습니다. 그렇다면 이 최적화 문제를 어떻게 해결해야 할까요?</p>
+<p><img src="https://i.imgur.com/OLVfqS6.png?1" class="img-fluid"></p>
+<p>(출처: <a href="https://ieeexplore.ieee.org/abstract/document/9298092">https://ieeexplore.ieee.org/abstract/document/9298092</a>)</p>
+<p>우리는 일반적으로 Loss 함수로 convex function(볼록 함수)를 활용합니다. 이 loss 함수의 값이 작아지는 방향으로 모델 파라미터 <strong><span class="math inline">\(\theta\)</span></strong> 를 업데이트 하기 위해, <strong><span class="math inline">\(\theta\)</span>에 대한 <span class="math inline">\(\mathcal{L}\)</span>의 기울기를 구한 후, 기울기가 작아지는 방향으로 <span class="math inline">\(\theta\)</span>를 업데이트</strong> 해줍니다.</p>
+<p>(위 그림에서 Cost를 <span class="math inline">\(\mathcal{L}\)</span>, Weights를 <span class="math inline">\(\theta\)</span>로 보시면 됩니다!)<br></p>
+<p><img src="https://i.imgur.com/Jp8GQ7W.png?1" class="img-fluid"></p>
+<p>이를 다시 <strong>Gradient 벡터</strong>라는 개념으로 정리해서 이야기 해보겠습니다. Gradient 벡터란 위의 식과 같이 <span class="math inline">\(\theta\)</span>에 대한 <span class="math inline">\(\mathcal{L}\)</span>의 편미분, 즉 기울기 값으로 구성된 벡터로써, 가장 빠르게 <span class="math inline">\(\mathcal{L}\)</span>이 증가하는 방향을 나타내는 방향 도함수 벡터입니다.</p>
+<blockquote class="blockquote">
+<p>💡 <strong>Gradient is the directional derivative in the direction of largest increase</strong></p>
+</blockquote>
+<p><br>일단 Gradient를 구했으면 이제 할 일은 <strong>모델 파라미터 <span class="math inline">\(\theta\)</span>를 gradient의 반대방향으로, 즉 <span class="math inline">\(\mathcal{L}\)</span>이 작아지는 방향으로, 반복적으로 업데이트</strong> 하는 것입니다.</p>
+<p><img src="https://i.imgur.com/83JjnS5.png?1" class="img-fluid"></p>
+<p>위 식에서 <span class="math inline">\(\eta\)</span>는 learning rate로, 한번 파라미터를 업데이트 시 얼마나 변경할 것인지 보폭을 나타내는 값입니다. 이는 학습 과정 동안 동일하게 유지할 수도 있고, 목적에 따라 계속 변하게 할 수도 있습니다. 이론적으로 모델 파라미터의 업데이트는 loss 함수의 local minimum에 도달하여 gradient가 0이 될 때까지 진행하는 것이 맞지만, 실전에서는 검증 데이터셋에서의 성능이 더 이상 증가하지 않는 기점에서 모델 파라미터 업데이트를 중단합니다.</p>
+</section>
+<section id="stochastic-gradient-descent-sgd" class="level2">
+<h2 class="anchored" data-anchor-id="stochastic-gradient-descent-sgd">Stochastic Gradient Descent (SGD)</h2>
+<p><strong>Gradient Descent의 문제점</strong></p>
+<p>Gradient descent 방법으로 최적화 문제를 푸는 것은 이론적으론 무결하지만 현실적으로는 어렵습니다. 앞서 언급했듯이, Gradient 벡터를 계산하기 위해서는 전체 데이터에 대한 loss 값을 구해야 하기 때문에 몇십억개의 데이터를 갖는 오늘날의 데이터셋에 적용하기에는 계산적으로 무리가 있습니다.</p>
+<p><img src="https://i.imgur.com/tuiCaRj.png?1" class="img-fluid"></p>
+<p>(출처: <a href="https://www.slideshare.net/w0ong/ss-82372826">https://www.slideshare.net/w0ong/ss-82372826</a>)</p>
+<p>따라서 <strong>전체 데이터셋을 작은 미니 배치로 나누어 모델 파라미터를 업데이트하는 SGD 방법</strong>이 등장하게 되었습니다. 미니 배치 마다 gradient를 구하고 모델 파라미터를 업데이트하는 것이 전체 데이터셋을 활용한 모델 업데이트 정도를 근사할 수 있기 때문이죠.</p>
+<blockquote class="blockquote">
+<p>💡 <strong>SGD is unbiased estimator of full gradient</strong></p>
+</blockquote>
+<p><br>오늘날의 최적화 optimizer은 SGD의 여러 발전된 형태로써, Adam, Adagrad, Adadelta, RMSprop 등이 있습니다.</p>
+</section>
+<section id="back-propagation" class="level2">
+<h2 class="anchored" data-anchor-id="back-propagation">Back-propagation</h2>
+<p>지금까지 머신러닝 문제를 최적화 문제로 재정의하고, 최적화 문제를 풀기 위해 gradient를 활용해 모델 파라미터를 업데이트 하는 방법에 대해서 배웠습니다. 잘 따라오고 계신가요?</p>
+<p>이제부터는 실질적으로 머신러닝 모델이 주어졌을 때, gradient를 계산하는 방법에 대해 알아보겠습니다. 오늘날의 머신러닝/딥러닝 모델은 아주 복잡한 형태를 가지지만, 일단 이해의 편의를 돕기 위해 가장 간단한 linear function를 예시로 설명하겠습니다.</p>
+<p><strong>Case 1</strong></p>
+<p><img src="https://i.imgur.com/XaAFccg.png?1" class="img-fluid"></p>
+<p>첫번째로 우리의 머신러닝 모델이 단순한 선형 변환 함수인 경우를 다뤄보겠습니다.</p>
+<p><img src="https://i.imgur.com/WCvz3lZ.png?1" class="img-fluid"></p>
+<p>선형 변환 함수가 벡터 형태이든 행렬 형태이든 관계 없이 gradient는 이렇게 간단히 구할 수 있습니다.<br></p>
+<p><strong>Case 2</strong></p>
+<p><img src="https://i.imgur.com/fPKG6mn.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/iC6m3Mb.png?1" class="img-fluid"></p>
+<p>두번째로 조금 더 복잡한 형태의 모델로 확장해보겠습니다. (물론 아직 엄청 단순한 형태긴 하지만..) 이 경우에는 <span class="math inline">\(W_{1}\)</span>과 <span class="math inline">\(W_{2}\)</span>에 대해 모두 gradient를 구해야 합니다. 여기서 우리가 고등학교 때 배운 합성함수 미분에서의 연쇄법칙이 사용됩니다.</p>
+<blockquote class="blockquote">
+<p>💡 Chain Rule (연쇄법칙)<br> <img src="https://i.imgur.com/IqvyTZ1.png?1" class="img-fluid"></p>
+</blockquote>
+<p><br></p>
+<p><img src="https://i.imgur.com/rLUT8NV.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/QO3D2Tl.png?1" class="img-fluid"></p>
+<p>연쇄법칙에 따라 gradient가 <span class="math inline">\(\mathcal{L}\)</span> → <span class="math inline">\(f(x)\)</span> → <span class="math inline">\(W_{2}\)</span> → <span class="math inline">\(W_{1}\)</span> 을 따라 차례로 거꾸로 흐르면서 계산됩니다. 이렇게 말단에서부터 앞쪽까지 gradient가 흘러오기 때문에 역전파(back-propagation)이라는 이름이 붙었다고 합니다.</p>
+</section>
+<section id="non-linearity" class="level2">
+<h2 class="anchored" data-anchor-id="non-linearity">Non-linearity</h2>
+<p>지금까지 예시로써 다뤄본 두 케이스는 사실 모두 선형 모델로써, 비선형적인 데이터를 잘 모델링할 수 없습니다. 따라서 오늘날의 머신러닝 모델은 비선형적인 활성 함수(Activation function)를 도입함으로써 이러한 문제를 해결합니다. 대표적인 비선형 함수로는 <strong>ReLU, Sigmoid</strong> 등이 있습니다.</p>
+<p><img src="https://i.imgur.com/9F5rpJS.png?1" class="img-fluid"></p>
+</section>
+<section id="multi-layer-perceptron-mlp" class="level2">
+<h2 class="anchored" data-anchor-id="multi-layer-perceptron-mlp">Multi-layer Perceptron (MLP)</h2>
+<p><img src="https://i.imgur.com/p2cEKZr.png?1" class="img-fluid"></p>
+<p><strong>MLP란 한 layer마다 선형 변환과 비선형 변환이 합쳐진 가장 기본적인 형태의 머신러닝 모델</strong>이라고 볼 수 있습니다. 위 식은 MLP 한 layer을 나타내는데, layer <span class="math inline">\(l\)</span> 의 인풋으로 들어온 <span class="math inline">\(x^{(l)}\)</span>에 <span class="math inline">\(W_{l}\)</span>이 곱해져 선형 변환 된 후 bias 항이 더해집니다. 최종적으로 비선형 함수를 거친 아웃풋이 layer <span class="math inline">\(l+1\)</span>의 인풋으로 전달됩니다. 이를 그림으로 나타내면 다음과 같습니다.</p>
+<p><img src="https://i.imgur.com/54tlQil.png?1" class="img-fluid"></p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>지금까지 간단하게 배운 딥러닝의 기본 개념을 정리해보고, 본격적인 오늘 강의의 주제로 넘어가겠습니다.</p>
+<ul>
+<li>머신러닝 문제는 최적화 문제로 풀 수 있습니다.</li>
+</ul>
+<p><img src="https://i.imgur.com/rp5kAPn.png?1" class="img-fluid"></p>
+<ul>
+<li>모델 <span class="math inline">\(f\)</span>는 간단한 선형 함수, MLP, 또는 다른 형태의 신경망일 수 있습니다. (e.g., 추후에 다룰 GNN도 가능합니다)</li>
+<li>먼저 전체 데이터셋을 미니배치로 나누어 인풋 <span class="math inline">\(x\)</span>으로 사용합니다.</li>
+<li>순전파(Forward Propagation): <span class="math inline">\(x\)</span>가 주어졌을 때 loss 함수 값 <span class="math inline">\(\mathcal{L}\)</span> 구하기</li>
+<li>역전파(Backward Propagation): 연쇄법칙으로 gradient <span class="math inline">\(\nabla_{\theta}\mathcal{L}\)</span> 구하기</li>
+<li>SGD를 활용하여 반복적으로 모델 파라미터 <span class="math inline">\(\theta\)</span>를 최적화합니다.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="deep-learning-for-graphs" class="level1">
+<h1>6.3 Deep Learning for Graphs</h1>
+<p>이제 본격적으로 이번 강의의 메인 주제였던 딥러닝을 활용한 그래프 데이터 임베딩 방법에 대해 공부해 봅시다. 참고로 Deep Encoder은 그래프 뉴럴 네트워크(GNN)으로도 부르기 때문에 혼재해서 사용하더라도 헷갈리지 않으시길 바랍니다.</p>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p>들어가기에 앞서 반복적으로 활용할 notation에 대해 간략히 설명하고 시작하겠습니다. 앞으로 아래 기호를 쭉 사용하여 설명을 할 예정이니 잘 알아두시기 바랍니다.</p>
+<ul>
+<li><span class="math inline">\(V\)</span>: 노드 집합</li>
+<li><span class="math inline">\(A\)</span>: 인접 행렬 (Adjacency matrix)</li>
+<li><span class="math inline">\(X \in \mathbb{R}^{m\times \|V\|}\)</span>: 노드 features</li>
+<li><span class="math inline">\(v\)</span>: 노드 집합에 포함된 한 노드, <span class="math inline">\(N(v)\)</span>: <span class="math inline">\(v\)</span>의 이웃 노드</li>
+</ul>
+<p>그래프 구조는 엣지의 방향성 및 가중 여부에 따라 여러 종류로 분류할 수 있지만, 이해를 위해 여기서는 가장 간단한 undirected &amp; unweighted 그래프로 설명하겠습니다. 따라서 인접 행렬은 0과 1로 이루어진, 대각 방향으로 symmetric한 행렬이라고 생각하실 수 있습니다.</p>
+<p>또한, 이전의 Shallow Encoder과는 달리 <strong>이제 노드 feature도 함께 고려하여 노드 임베딩을 학습</strong>한다는 점에 유의하시기 바랍니다.</p>
+<ul>
+<li>사실 대부분의 그래프 데이터셋은 노드 feature을 포함하고 있지만, 만에 하나 없는 경우라면 다음과 같은 벡터/값을 노드 feature로 사용하기도 합니다.
+<ul>
+<li>노드의 one-hot 인코딩 벡터</li>
+<li>상수 벡터 [1, 1, …, 1]</li>
+<li>노드 차수(degree)</li>
+</ul></li>
+</ul>
+</section>
+<section id="naive-approach" class="level2">
+<h2 class="anchored" data-anchor-id="naive-approach">Naive Approach</h2>
+<p>딥러닝 모델을 활용하여 그래프 및 노드를 임베딩 하기 위해 가장 쉽게 생각할 수 있는 방법은 단순하게 그래프의 구조적인 특성을 나타내는 인접 행렬과 노드 feature 행렬을 그냥 이어 붙여서 딥러닝 모델에 던져주는 것입니다.</p>
+<p><img src="https://i.imgur.com/Htd160v.png?1" class="img-fluid"></p>
+<p>위와 같은 undirected 그래프의 각 노드가 2차원의 feature를 각각 가지고 있다면, 단순히 두 행렬을 이어 붙여서 만든 7차원의 벡터를 뉴럴 네트워크에 전달하면 각 노드를 간단히 임베딩 할 수 있을 것입니다. 하지만 이러한 방법에는 다음과 같은 문제가 존재합니다.</p>
+<ul>
+<li><strong><span class="math inline">\(O(\|V\|)\)</span> 파라미터가 필요함</strong> <br>노드 feature이 <span class="math inline">\(d\)</span>차원이라고 가정하면, 각 노드가 뉴럴 네트워크에 입력되는 차원이 <span class="math inline">\(\|V\|+d\)</span> 이겠죠? 따라서 그래프의 노드 갯수에 비례하여 모델의 파라미터가 증가합니다.</li>
+<li><strong>다른 사이즈의 그래프에는 적용할 수 없음</strong> <br>위와 같은 그래프에 대해 뉴럴 네트워크를 기껏 학습시켜 놓았는데, 100개의 노드로 구성된 새로운 그래프가 인풋으로 들어온다면, 인풋 차원이 맞지 않아 학습시킨 임베딩 모델을 활용할 수 없을 것입니다.</li>
+<li><strong>노드 순서가 바뀌면 동일 노드의 임베딩이 달라질 수 있음</strong> <br>위 그래프에서 노드 순서를 A→B→C→D→E에서 B→E→A→C→D 등으로 바꾼다면, 이에 따라 인접 행렬도 바뀌게 됩니다. 이렇게 된다면 같은 A 노드를 임베딩 하기 위해 인풋으로 활용되는 7차원의 벡터가 달라지기 때문에 임베딩 결과 값도 달라질 것입니다.</li>
+</ul>
+</section>
+<section id="from-images-to-graphs" class="level2">
+<h2 class="anchored" data-anchor-id="from-images-to-graphs">From Images to Graphs</h2>
+<p>그렇다면 기존 CNN 모델에서 아이디어를 차용해보는 건 어떨까요?</p>
+<p><img src="https://i.imgur.com/5WHwb3y.png?1" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/H798kmS.png?1" class="img-fluid"></p>
+<p>이미지를 다루는 CNN은 위와 같이 고정된 사이즈의 convolution 필터를 사용하여 이미지를 주욱 훑습니다. 여기서의 <strong>convolution 필터는 붉은 원으로 표시된 타겟 픽셀의 주위 픽셀 정보를 축약하는 역할</strong>을 합니다. 사실 이미지가 특수한 형태의 그래프로 해석될 수 있음을 생각해보면, 그래프 데이터에서도 <strong>타겟 노드의 임베딩을 만들기 위해 주변 노드의 정보를 사용한다</strong>는 아이디어는 나쁘지 않아 보입니다.</p>
+<p>하지만 그래프에서는 CNN에서와 같이 고정된 크기의 필터(?)를 사용할 수 없습니다. 어떤 노드는 한두개의 이웃 노드를 가지지만 또 어떤 노드는 수백수천개의 이웃 노드를 가질 수 있기 때문이죠.</p>
+<p><img src="https://i.imgur.com/hj1IEmg.png?1" class="img-fluid"></p>
+<p><strong>그렇다면 그래프를 임베딩 할 때 타겟 노드의 이웃 노드에서 정보를 전달받아 이를 활용하여 타겟 노드의 임베딩을 업데이트 하되, 타겟 노드마다 이웃 노드의 갯수가 다를 수 있는 점을 고려하여 각기 다른 computation graph를 갖도록 하는 것이 좋겠습니다!</strong></p>
+<p>다음과 같은 아이디어를 근간으로 Graph Convolutional Network가 등장하게 되었습니다. 남은 강의에서는 이 GCN을 디테일하게 설명하고 있습니다.</p>
+</section>
+<section id="idea-aggregate-neighbors" class="level2">
+<h2 class="anchored" data-anchor-id="idea-aggregate-neighbors">Idea: Aggregate Neighbors</h2>
+<blockquote class="blockquote">
+<p><strong>주요 Idea: 이웃 노드 정보를 가지고 타겟 노드 임베딩을 생성하자!</strong></p>
+</blockquote>
+<p><img src="https://i.imgur.com/aY7jSuv.png?1" class="img-fluid"></p>
+<p>왼쪽과 같은 그래프에서 우리가 임베딩하고 싶은 타겟 노드가 노란색의 A 노드라고 생각해 봅시다. 그렇다면 A 노드의 이웃 노드, 그리고 그 이웃 노드들의 이웃 노드를 가지고 오른쪽과 같은 computation graph가 생깁니다.</p>
+<p>타겟 노드 A는 직속 이웃인 노드 B, C, D로부터 메시지를 전달 받고, 모든 메시지를 합친 후 어떠한 변환을 거쳐 본인의 임베딩으로 활용합니다. 우측 그림에서 회색 박스로 표시된 뉴럴 네트워크가 바로 이러한 <strong>1) 메시지 변환, 2) 이웃 노드로부터 온 메시지를 통합</strong>하는 두 과정을 수행하게 됩니다. 이 뉴럴 네트워크 내의 모델 파라미터가 최종적인 우리의 학습 대상이 되는 것입니다.</p>
+<p>여기서 또 눈여겨 보아야 할 점이 있습니다. 여지껏 우리는 노란색 A 노드를 타겟 노드로 한 computation graph만 보았는데, 그렇다면 B, C, D 등 다른 타겟 노드에 대해서도 동일한 computation graph를 가질까요?</p>
+<p><img src="https://i.imgur.com/25YNtNb.png?1" class="img-fluid"></p>
+<p>아닙니다. 노드마다 이웃 노드의 갯수와 종류가 다르기 때문에 당연히 <strong>노드마다 서로 다른 computation graph를 가지게 됩니다.</strong></p>
+</section>
+<section id="deep-model-many-layers" class="level2">
+<h2 class="anchored" data-anchor-id="deep-model-many-layers">Deep Model: Many Layers</h2>
+<p><img src="https://i.imgur.com/Q3jIV12.png?1" class="img-fluid"></p>
+<p><strong>Layer의 수</strong></p>
+<p>Deep Encoder은 여러 layer로 구성할 수 있는데, 한 layer이 직속 이웃 노드에 대한 정보를 aggregate하는 것이기 때문에 <strong>layer을 두 개 쌓는다면</strong> 직속 이웃 노드에 대한 이웃 노드, 즉 <strong>타겟 노드로부터 2-hop 떨어진 노드의 정보까지 활용</strong>하겠다는 의미로 해석할 수 있습니다. 위 그림에서도 잘 나타나 있는데, 2개의 layer로 구성된 모델을 사용하기 때문에 타겟 노드 A로부터 2-hop 떨어진 노드 E, F의 정보도 임베딩 생성에 활용되는 것을 볼 수 있습니다.</p>
+<p><strong>노드 임베딩 초기화</strong></p>
+<p>또한, 보통 Layer-0에서 <strong>최초 노드 임베딩으로 노드 feature을 사용</strong>합니다. 모든 노드 임베딩은 layer을 거칠수록 이웃 노드의 정보를 변환하고 합친 후 업데이트 됩니다. 결국 모든 layer을 거치고 나면 최종 노드 임베딩이 생성되어 우리가 downstream task를 위해 사용하게 되는 것이죠.</p>
+<p><strong>Aggregator 함수</strong></p>
+<p>여기서 타겟 노드 A가 이웃 노드 B, C, D의 메시지를 aggregation 할 때, 노드 B, C, D의 순서와 관계 없이 aggregate된 메시지는 동일해야 합니다. 즉, 메시지를 aggregate하는 함수는 <strong>permutation-invariant</strong>한 속성을 가져야 한다는 말입니다. 일반적인 GNN은 주로 <strong>합, 평균, 맥스 풀링</strong>등의 aggregator를 활용합니다.</p>
+</section>
+<section id="the-math-deep-encoder" class="level2">
+<h2 class="anchored" data-anchor-id="the-math-deep-encoder">The Math: Deep Encoder</h2>
+<p><img src="https://i.imgur.com/49N2oH5.png?1" class="img-fluid"></p>
+<p>자, 이제 가장 기본적인 GNN 형태를 정의하고 이를 수식으로 나타내어 알고리즘의 원리를 자세히 들여다보는 시간을 갖겠습니다. 우리의 GNN은 타겟 노드의 이웃 노드 임베딩을 전달받아 이를 평균냄으로써 메시지를 aggregate 합니다. 그 후, 뉴럴 네트워크를 통해 어떠한 변환을 거치고 이를 활용하여 타겟 노드 임베딩을 업데이트 합니다. 이를 수식으로 나타내면 아래와 같습니다.<br></p>
+<p><img src="https://i.imgur.com/CoK7fSk.png?2" class="img-fluid"></p>
+<p>식이 처음엔 되게 복잡해 보이지만, 하나씩 뜯어보면 사실 아주 간단합니다. 식 전반에 나타나는 <span class="math inline">\(h_{v}^{(l)}\)</span> 은 <span class="math inline">\(l\)</span>번째 layer에서 노드 <span class="math inline">\(v\)</span>의 임베딩을 나타낸다고 보시면 됩니다.</p>
+<ol type="1">
+<li><strong>초록색 수식 블럭</strong> : 첫 노드 임베딩을 노드 feature로 초기화합니다.</li>
+<li><strong>파란색 수식 블럭</strong> : <span class="math inline">\(l+1\)</span>번째 layer에서의 노드 임베딩을 만들기 위해, 먼저 타겟 노드 <span class="math inline">\(v\)</span>의 이웃 노드에 대해 <span class="math inline">\(l\)</span> 번째 layer에서의 노드 임베딩 평균을 구합니다. 그 후, 이웃 노드의 평균 임베딩에 어떠한 transformation <span class="math inline">\(W_{l}\)</span> 을 가합니다.</li>
+<li><strong>빨간색 수식 블럭</strong> : 타겟 노드의 임베딩을 업데이트할 때 이웃 노드 뿐 아니라, 이전 layer에서 갖고 있던 자기 자신의 임베딩도 활용합니다. 같은 방법으로 <span class="math inline">\(h_{v}^{(l)}\)</span>에 어떠한 transformation <span class="math inline">\(B_{l}\)</span> 을 가합니다.</li>
+<li><strong>노란색 수식 블럭</strong> : 최종적으로 비선형 함수를 적용해서 <span class="math inline">\(l+1\)</span>번째 layer에서의 타겟 노드 임베딩을 구합니다.</li>
+<li><strong>보라색 수식 블럭</strong> : 노드 임베딩 업데이트 과정을 <span class="math inline">\(L\)</span>번 반복합니다. 이 때 최종적으로 형성된 노드 임베딩은 본인으로부터 L-hop 떨어진 노드의 정보까지 활용하여 만든 것입니다.</li>
+</ol>
+</section>
+<section id="matrix-formulation" class="level2">
+<h2 class="anchored" data-anchor-id="matrix-formulation">Matrix Formulation</h2>
+<p>이전에 Random Walk를 행렬 형태로 표현했듯이, 벡터식으로 다뤘던 GNN도 행렬식으로 다시 표현해보겠습니다.</p>
+<p>모든 노드 임베딩 벡터를 한데 모아 노드 임베딩 행렬을 만든다면, 이는 아래와 같이 표현할 수 있습니다.</p>
+<p><span class="math inline">\(H^{L} = {[h_{1}^{(l)} ... h_{\|V\|}^{(l)}]}^T\)</span></p>
+<p>그렇다면 이웃 노드의 임베딩을 합산하는 과정은 그래프의 인접 행렬을 사용하여 아래와 같이 간단하게 나타낼 수 있습니다.</p>
+<p><span class="math inline">\(\sum_{u\in N_{v}} h_{u}^{(l)} = A_{v:}H^{(l)}\)</span></p>
+<p>만약 대각 행렬을 이렇게 정의한다면, 이 대각 행렬의 역행렬은 다음과 같기 때문에,</p>
+<p><span class="math inline">\(D_{v,v} = Deg(v) = \|N(v)\|\)</span> , <span class="math inline">\(D_{v,v}^{-1} = 1/\|N(v)\|\)</span></p>
+<p>이를 활용하면 이웃 노드의 임베딩을 평균내는 연산을 행렬식으로 간단하게 표현할 수 있습니다.</p>
+<p><img src="https://i.imgur.com/c7BISSb.png?1" class="img-fluid"></p>
+<p>따라서 최종적으로 노드 임베딩 업데이트 함수를 행렬식으로 나타내면 아래와 같습니다.</p>
+<p><img src="https://i.imgur.com/b0ih789.png?1" class="img-fluid"></p>
+<p>벡터식으로 이해하기도 어려웠는데 왜 굳이 사서 행렬식으로 변환하냐고요? 사실 행렬식이 가지는 구현상의 이점이 있기 때문입니다. <strong>행렬식을 사용한다면 각 노드에 대한 임베딩을 따로 따로 업데이트 하지 않고 하나의 행렬로써 한번에 업데이트 할 수 있으며, 이 과정에서 <span class="math inline">\(\tilde{A}\)</span>가 희소 행렬이기 때문에 보다 더 효율적인 행렬 연산이 가능하기 때문에 구현할 때는 행렬식이 더 선호됩니다.</strong></p>
+</section>
+<section id="how-to-train-a-gnn" class="level2">
+<h2 class="anchored" data-anchor-id="how-to-train-a-gnn">How to train a GNN</h2>
+<p>오늘 강의의 마지막 부분으로 이렇게 구성한 GNN을 어떻게 학습시켜야 하는지 알아보겠습니다. 시작하기에 앞서 학습의 대상이 되는 파라미터가 무엇인지 짚고 넘어가보죠.</p>
+<p><img src="https://i.imgur.com/urFvswH.png?1" class="img-fluid"></p>
+<p>다음 식에서 <strong>학습되는 파라미터는 <span class="math inline">\(W_{l}\)</span>와 <span class="math inline">\(B_{l}\)</span></strong> 입니다. 딸린 subscript를 봐도 알 수 있듯이, 두 파라미터 행렬은 모두 <strong>layer마다 따로 존재하며, 한 layer 내에서는 공유</strong>됩니다. 이를 간단하게 그림으로 표현하면 아래와 같습니다.</p>
+<p><img src="https://i.imgur.com/sYIgPuk.png?1" class="img-fluid"></p>
+<p>GNN을 학습하는 방법은 여느 딥러닝 학습과 마찬가지로 크게 <strong>지도 학습, 비지도 학습 세팅</strong>으로 나뉩니다. 이를 하나씩 살펴보도록 합시다.</p>
+<ol type="1">
+<li><p><strong>지도 학습 세팅</strong></p>
+<ul>
+<li><p>노드 label <span class="math inline">\(y\)</span>가 존재하는 상황</p></li>
+<li><p>정답 노드 label <span class="math inline">\(y\)</span>를 활용하여 <span class="math inline">\(min_{\theta}\mathcal{L}(y,f(z_v))\)</span>를 풂, 이 때 task에 맞게 L2 loss 혹은 Cross entropy loss 등을 loss 함수를 사용함</p></li>
+<li><p>예시) 각 노드가 safe한지 혹은 toxic한지 분류하는 node classification → 분류 문제이므로 cross-entropy loss를 사용하고, <strong>노드의 정답 클래스 label을 활용하여 직접 모델 학습 가능</strong></p>
+<blockquote class="blockquote">
+<p>💡 아래 loss 식에서 <span class="math inline">\(\sigma(z_v^T\theta)\)</span>는 학습된 노드 임베딩 <span class="math inline">\(z_v^T\)</span>를 가지고 <strong>모델이 예측한 노드 <span class="math inline">\(v\)</span>의 클래스 확률</strong> 을 나타냅니다.</p>
+</blockquote></li>
+</ul>
+<p><img src="https://i.imgur.com/HQ38X60.png?2" class="img-fluid"></p>
+<p><img src="https://i.imgur.com/qQFObHg.png?1" class="img-fluid"></p></li>
+<li><p><strong>비지도 학습 세팅</strong></p>
+<ul>
+<li><p>노드 label이 존재하지 않는 상황</p></li>
+<li><p><strong>3강에서 공부했던 그래프 상 노드 similarity를 supervision으로 활용</strong></p>
+<p><img src="https://i.imgur.com/wwOybOk.png?1" class="img-fluid"></p>
+<p>임의의 supervision 시그널을 만들어 비지도 학습 세팅을 지도 학습 세팅으로 바꾸기 위해서 원본 그래프에서의 노드 similarity를 바탕으로 label을 지정해줍니다. 여기서 노드 similarity는 3강에서 다뤘던 Random Walk 등을 활용할 수 있습니다.</p>
+<p>간단하게 DeepWalk로 노드 similarity를 정의하는 경우를 생각해볼까요? 만약 두 노드 <span class="math inline">\(u\)</span>와 <span class="math inline">\(v\)</span>가 랜덤 워크 상에서 co-occur한다면 두 노드는 ’similar’하다고 말할 수 있으며, <span class="math inline">\(y_{u,v} = 1\)</span>로 임의의 label을 붙입니다. 또한 여기서 <span class="math inline">\(DEC(z_u,z_v)\)</span>는 학습된 두 노드의 임베딩을 내적함으로써 임베딩 공간에서의 노드 similarity를 측정합니다. Loss 함수로 cross-entropy를 사용함으로써 그래프에서 노드 similarity를 최대한 잘 보존하도록 노드 임베딩을 학습할 수 있게 됩니다.</p>
+<blockquote class="blockquote">
+<p>💡 원본 그래프에서 similar한 노드는 → similar한 임베딩을 갖도록 합니다<br> <img src="https://i.imgur.com/UyyVLbR.png?1" class="img-fluid"></p>
+</blockquote></li>
+</ul></li>
+</ol>
+</section>
+<section id="model-design-overview" class="level2">
+<h2 class="anchored" data-anchor-id="model-design-overview">Model Design: Overview</h2>
+<p>자 그럼, 오늘 배웠던 내용을 한번 쭉 훑어 정리하고 포스트를 마무리하도록 하겠습니다. 그래프를 위한 Deep Encoder, a.k.a. GNN 모델을 만들기 위해서 아래와 같은 단계를 따라가야 합니다.</p>
+<ol type="1">
+<li><p><strong>이웃 노드 임베딩을 aggregate하는 함수를 정함</strong></p></li>
+<li><p><strong>Task의 특성에 맞추어 loss 함수를 정의함</strong></p></li>
+<li><p><strong>여러 computation graph에 대해 GNN 모델을 학습시킴</strong></p></li>
+<li><p><strong>학습된 모델을 갖고 노드에 대한 임베딩을 생성할 수 있음. 이 때, 모든 노드에 대해 뉴럴 네트워크의 파라미터가 공유되기 때문에 학습에 사용되지 않은 노드에 대해서도 임베딩을 생성할 수 있음 (Inductive Capability)</strong></p>
+<p><img src="https://i.imgur.com/hK8yNIW.png?1" class="img-fluid"> <img src="https://i.imgur.com/IVjcjvq.png?1" class="img-fluid"> <img src="https://i.imgur.com/9VE7ZON.png?1" class="img-fluid"></p></li>
+</ol>
+<blockquote class="blockquote">
+<p>💡 Inductive Capability<br>1. <strong>새로운 그래프</strong> : 예를 들어 분자 그래프에서, 화합물 A에 대해 학습된 GNN 모델이 화합물 B 그래프에서 임베딩을 만드는데 활용될 수 있음<br>2. <strong>새로운 노드</strong> : 시간에 따라 evolving 하는 그래프에서 새로운 노드가 추가될 때마다 바로바로 임베딩을 생성할 수 있음</p>
+</blockquote>
+</section>
+<section id="summary-1" class="level2">
+<h2 class="anchored" data-anchor-id="summary-1">Summary</h2>
+<ul>
+<li>Deep Encoder (GNN)의 핵심 아이디어: 이웃 노드의 정보를 aggregate 함으로써 노드 임베딩을 생성하자!</li>
+<li>모델 내 Aggregator과 Transformation 함수를 각각 어떻게 정의하느냐에 따라 모델 구조가 달라질 수 있습니다.</li>
+<li>다음 강의에선 GNN variant의 하나인 GraphSAGE를 다룰 것입니다.</li>
+</ul>
+<hr>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

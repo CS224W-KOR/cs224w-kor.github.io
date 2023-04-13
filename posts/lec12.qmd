@@ -1,0 +1,8 @@
+---
+toc: true
+title: "Lecture 12"
+description: Frequent Subgraph Mining with GNNs
+author: "iDeal"
+date: "2022-08-18"
+categories: [LEC12]
+---
